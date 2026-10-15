@@ -665,12 +665,10 @@ struct Media: View {
                     label:
                         HStack {
                             Text("Full screen behavior")
-                            customBadge(text: "Beta")
                         }
                 ) {
-                    Text("Hide for all apps").tag(HideNotchOption.always)
-                    Text("Hide for media app only").tag(
-                        HideNotchOption.nowPlayingOnly)
+                    Text("Hide during full screen video").tag(HideNotchOption.videoOnly)
+                    Text("Hide for all full screen apps").tag(HideNotchOption.always)
                     Text("Never hide").tag(HideNotchOption.never)
                 }
             } header: {

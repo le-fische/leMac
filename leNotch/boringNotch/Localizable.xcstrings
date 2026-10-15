@@ -10708,6 +10708,26 @@
         }
       }
     },
+    "Hide during full screen video" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide during full screen video"
+          }
+        }
+      }
+    },
+    "Hide for all full screen apps" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide for all full screen apps"
+          }
+        }
+      }
+    },
     "Hide for media app only" : {
       "localizations" : {
         "ar" : {

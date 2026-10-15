@@ -30,10 +30,17 @@ enum CalendarSelectionState: Codable, Defaults.Serializable {
     case selected(Set<String>)
 }
 
-enum HideNotchOption: String, Defaults.Serializable {
+enum HideNotchOption: String, CaseIterable, Identifiable, Defaults.Serializable {
+    case videoOnly
     case always
-    case nowPlayingOnly
     case never
+    case nowPlayingOnly
+    
+    var id: String { self.rawValue }
+    
+    var isVideoOnly: Bool {
+        self == .videoOnly || self == .nowPlayingOnly
+    }
 }
 
 // Define notification names at file scope
@@ -183,7 +190,7 @@ extension Defaults.Keys {
     static let autoScrollToNextEvent = Key<Bool>("autoScrollToNextEvent", default: true)
     
     // MARK: Fullscreen Media Detection
-    static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .nowPlayingOnly)
+    static let hideNotchOption = Key<HideNotchOption>("hideNotchOption", default: .videoOnly)
     
     // MARK: Media Controller
     static let mediaController = Key<MediaControllerType>("mediaController", default: defaultMediaController)
