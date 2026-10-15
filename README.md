@@ -72,56 +72,55 @@ A modern, unlocked fan controller and thermal telemetry utility for macOS.
 
 ---
 
-## 🚀 How to Add New Mini Projects
+## 📥 How to Download
 
-> For full migration steps from outside directories, see [**MONOREPO_GUIDE.md**](MONOREPO_GUIDE.md).
+You can clone the entire monorepo or download individual projects:
 
-Adding a new MacBook mini project to this monorepo is straightforward:
-
-1. **Create a project folder** in the root:
-   ```bash
-   mkdir MyMacProject
-   ```
-
-2. **Add your source code & build configuration**:
-   - For Xcode projects: save `MyMacProject.xcodeproj` inside `MyMacProject/`
-   - For Swift script / CLI / single-file apps: include a `build.sh` or `Package.swift`
-
-3. **Add a `README.md`** inside `MyMacProject/` describing its purpose, features, and build steps.
-
-4. **Add an entry to the Projects Catalog** in this root `README.md`.
-
-5. **Commit and push**:
-   ```bash
-   git add MyMacProject README.md
-   git commit -m "Add MyMacProject"
-   git push origin main
-   ```
+### 1. Download Entire Repository
+Clone all `leMac` tools at once:
+```bash
+git clone https://github.com/le-fische/leMac.git
+```
+Or download the repository archive directly:
+- [Download leMac ZIP](https://github.com/le-fische/leMac/archive/refs/heads/main.zip)
 
 ---
 
-## 🛠️ Building Projects
+### 2. Download Individual Projects
 
-### Build leNotch
-```bash
-cd leNotch
-xcodebuild -scheme boringNotch -configuration Release build CODE_SIGNING_ALLOWED=NO
-```
+If you only need a specific utility without downloading the full repository, you can download any project using sparse clone:
 
-### Build leMinibar
+#### 🪽 [leNotch](leNotch/)
+Dynamic Island & Notch utility with 60 FPS audio visualizer glow and smart shelf.
 ```bash
-cd leMinibar
-chmod +x build.sh
-./build.sh
+git clone --depth 1 --filter=blob:none --sparse https://github.com/le-fische/leMac.git
+cd leMac && git sparse-checkout set leNotch
 ```
+> For setup and usage details, see [leNotch/README.md](leNotch/README.md).
 
-### Build leCG
+#### 🍸 [leMinibar](leMinibar/)
+Minimalist 1:1 Ice-inspired menu bar minimizer with single hairline dot control.
 ```bash
-cd leCG
-make build
-# or run directly
-make run
+git clone --depth 1 --filter=blob:none --sparse https://github.com/le-fische/leMac.git
+cd leMac && git sparse-checkout set leMinibar
 ```
+> For setup and usage details, see [leMinibar/README.md](leMinibar/README.md).
+
+#### ⚡️ [leCG](leCG/)
+Lightweight real-time CPU, GPU, RAM, and thermal monitor for Apple Silicon.
+```bash
+git clone --depth 1 --filter=blob:none --sparse https://github.com/le-fische/leMac.git
+cd leMac && git sparse-checkout set leCG
+```
+> For setup and usage details, see [leCG/README.md](leCG/README.md).
+
+#### 🌪️ [leFan](leFan/)
+Modern unlocked fan controller and thermal telemetry utility.
+```bash
+git clone --depth 1 --filter=blob:none --sparse https://github.com/le-fische/leMac.git
+cd leMac && git sparse-checkout set leFan
+```
+> For setup and usage details, see [leFan/README.md](leFan/README.md).
 
 ---
 
