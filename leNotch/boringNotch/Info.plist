@@ -10,6 +10,14 @@
 	<string>leNotch displays connected Bluetooth devices and battery levels in your notch.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>leNotch displays connected Bluetooth devices and battery levels in your notch.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>leNotch displays your calendar events in the notch.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>leNotch displays your calendar events in the notch.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>leNotch displays your reminders in the notch.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>leNotch displays your reminders in the notch.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

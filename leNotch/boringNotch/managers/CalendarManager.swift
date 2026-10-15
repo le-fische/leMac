@@ -32,7 +32,10 @@ class CalendarManager: ObservableObject {
         self.currentWeekStartDate = CalendarManager.startOfDay(Date())
         setupEventStoreChangedObserver()
         Task {
+            await checkCalendarAuthorization()
+            await checkReminderAuthorization()
             await reloadCalendarAndReminderLists()
+            await updateEvents()
         }
     }
 
