@@ -10,8 +10,9 @@ Each project in this repository is designed to be self-contained, high-performan
 
 | Project | Description | Tech Stack | Status |
 | :--- | :--- | :--- | :--- |
-| [**leNotch**](leNotch/) | Dynamic Island & Notch utility with 60 FPS audio visualizer glow, smart OCR shelf, HUD replacements, Bluetooth telemetry, and live weather. | Swift, SwiftUI, AppKit, Metal, Vision | Active |
+| [**leNotch**](leNotch/) | Dynamic Island & Notch utility with 60 FPS audio visualizer glow, smart OCR shelf, HUD replacements, and live weather. | Swift, SwiftUI, AppKit, Metal, Vision | Active |
 | [**MiniBar**](MiniBar/) | Minimalist collapsible menu bar organizer to declutter MacBook status icons with zero dependencies. | Swift, AppKit, Cocoa | Active |
+| [**leCPUGPU**](leCPUGPU/) | Lightweight real-time CPU, GPU, RAM, and thermal monitor menu bar application for Apple Silicon. | Swift, IOKit, Metal, AppKit | Active |
 
 ---
 
