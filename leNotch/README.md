@@ -27,10 +27,6 @@ Turn your MacBook's notch into an interactive Dynamic Island featuring a 60 FPS 
 - **Native HUD Replacement**: Clean, non-intrusive notch HUDs for **Volume**, **Display Brightness**, and **Keyboard Backlight**.
 - **Interactive Control**: Drag sliders directly inside the notch HUD to adjust levels.
 
-### 🎧 Bluetooth Live Activity
-- **Real-Time Peripheral Tracking**: Automatically detects when Bluetooth peripherals (AirPods, headphones, Magic Mouse, Magic Keyboard, trackpad) connect or disconnect.
-- **Battery Percentage Pills**: Dynamic Island notification displays device icon, status ("Connected" / "Disconnected"), and real-time battery percentage badge.
-
 ### ⛅ Weather Integration
 - **Live Glance in Header**: Displays current temperature and WMO weather condition icons (`☀️ 72°F` / `⛅ 18°C`) in the notch header using Open-Meteo.
 - **Zero API Key Needed**: Automatically resolves city and locale unit preference (°C vs. °F) without configuration or paid accounts.
