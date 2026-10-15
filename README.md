@@ -44,6 +44,20 @@ A minimalist, zero-dependency menu bar manager for macOS.
 
 ---
 
+## ⚡️ [leCPUGPU](leCPUGPU/)
+
+A lightweight, native menu bar monitor for CPU, GPU, and Hardware Thermals with live stacked graphics.
+
+- **Stacked Menu Bar Graphics**: Live rolling history waveforms, horizontal gauge bars, or compact micro-capsules unified in one icon.
+- **Hardware Thermals**: Reads Apple Silicon internal die thermal sensors (CPU, GPU, SoC Peak) via IOKit HID without sudo.
+- **True Apple Silicon GPU Utilization**: Live device utilization, renderer activity, tiler usage, and in-use GPU memory via `IOAccelerator`.
+- **CPU Breakdown**: User, system, idle, and per-core activity across Performance (P-cores) and Efficiency (E-cores).
+- **RAM & Top Processes**: Live Unified Memory metrics and top 5 CPU-consuming processes.
+- **Unit & Metric Toggle**: Switch between Percentages, Temperatures (°C / °F), or Both right from the menu.
+- **Ultra-Lightweight**: Native Swift, ~240 KB binary, < 0.2% CPU idle, automatic sleep/wake power conservation.
+
+---
+
 ## 🚀 How to Add New Mini Projects
 
 > For full migration steps from outside directories, see [**MONOREPO_GUIDE.md**](MONOREPO_GUIDE.md).
@@ -85,6 +99,14 @@ xcodebuild -scheme boringNotch -configuration Release build CODE_SIGNING_ALLOWED
 cd MiniBar
 chmod +x build.sh
 ./build.sh
+```
+
+### Build leCPUGPU
+```bash
+cd leCPUGPU
+make build
+# or run directly
+make run
 ```
 
 ---
