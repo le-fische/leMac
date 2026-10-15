@@ -408,8 +408,6 @@ struct ContentView: View {
                 width: max(0, vm.effectiveClosedNotchHeight - 12),
                 height: max(0, vm.effectiveClosedNotchHeight - 12)
             )
-            .padding(.horizontal, 4)
-            .zIndex(2)
 
             Rectangle()
                 .fill(.black)

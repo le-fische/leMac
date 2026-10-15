@@ -167,60 +167,31 @@ struct AlbumEdgeGlowView: View {
             let sub = CGFloat(audioMonitor.bandLevels.subBass)
             let pulseEnergy = max(beat, (bass * 0.6 + sub * 0.4))
 
-            // Robust scales so the glow clearly radiates well beyond the black borders
-            let innerScale: CGFloat = isMinimized
-                ? (1.20 + pulseEnergy * 0.22)
-                : (1.10 + pulseEnergy * 0.12)
-            let outerScale: CGFloat = isMinimized
-                ? (1.42 + pulseEnergy * 0.32)
-                : (1.25 + pulseEnergy * 0.20)
+            // Calibrated sizes:
+            // - Mini: tight border glow that stays safely inside notch boundaries without reaching hardstops
+            // - Main expanded: matches initial attempt size (scale 1.04...1.15, blur 14...26)
+            let scale: CGFloat = isMinimized
+                ? (1.08 + pulseEnergy * 0.05)
+                : (1.04 + pulseEnergy * 0.11)
 
-            let innerBlur: CGFloat = isMinimized
-                ? (3.5 + pulseEnergy * 2.5)
-                : (12.0 + pulseEnergy * 8.0)
-            let outerBlur: CGFloat = isMinimized
-                ? (8.0 + pulseEnergy * 4.0)
-                : (28.0 + pulseEnergy * 14.0)
+            let blurRadius: CGFloat = isMinimized
+                ? (2.2 + pulseEnergy * 1.2)
+                : (14.0 + pulseEnergy * 12.0)
 
-            let innerOpacity: Double = isMinimized
-                ? Double(0.95 + pulseEnergy * 0.05)
-                : Double(0.90 + pulseEnergy * 0.10)
-            let outerOpacity: Double = isMinimized
-                ? Double(0.70 + pulseEnergy * 0.25)
-                : Double(0.65 + pulseEnergy * 0.25)
+            let opacity: Double = isMinimized
+                ? Double(0.65 + pulseEnergy * 0.30)
+                : Double(0.40 + pulseEnergy * 0.35)
 
-            ZStack {
-                // Wide ambient atmospheric bloom in album edge colors
-                Image(nsImage: musicManager.albumArt)
-                    .resizable()
-                    .aspectRatio(1, contentMode: .fit)
-                    .saturation(2.0)
-                    .brightness(0.18)
-                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-                    .scaleEffect(outerScale)
-                    .blur(radius: outerBlur)
-                    .opacity(outerOpacity)
-
-                // Intense tight edge rim glow
-                Image(nsImage: musicManager.albumArt)
-                    .resizable()
-                    .aspectRatio(1, contentMode: .fit)
-                    .saturation(2.2)
-                    .brightness(0.22)
-                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-                    .scaleEffect(innerScale)
-                    .blur(radius: innerBlur)
-                    .opacity(innerOpacity)
-
-                // Edge tint backing to guarantee vibrant glow even on pitch-black album borders
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.8))
-                    .scaleEffect(innerScale * 0.98)
-                    .blur(radius: innerBlur * 1.2)
-                    .opacity(Double(0.35 + pulseEnergy * 0.35))
-            }
-            .allowsHitTesting(false)
-            .animation(.easeOut(duration: 0.08), value: pulseEnergy)
+            Image(nsImage: musicManager.albumArt)
+                .resizable()
+                .aspectRatio(1, contentMode: .fit)
+                .saturation(isMinimized ? 1.6 : 1.4)
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                .scaleEffect(scale)
+                .blur(radius: blurRadius)
+                .opacity(opacity)
+                .allowsHitTesting(false)
+                .animation(.easeOut(duration: 0.08), value: pulseEnergy)
         }
     }
 }
