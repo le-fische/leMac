@@ -14,6 +14,7 @@ Each project in this repository is designed to be self-contained, high-performan
 | [**leMinibar**](leMinibar/) | 1:1 Ice-inspired zero-permission menu bar minimizer with single hairline dot control. | Swift, AppKit, Cocoa | Active |
 | [**leCG**](leCG/) | Lightweight real-time CPU, GPU, RAM, and thermal monitor menu bar application for Apple Silicon. | Swift, IOKit, Metal, AppKit | Active |
 | [**leFan**](leFan/) | Modern unlocked fan controller with tachometers, dynamic sensor curves, and presets. | Swift, SwiftUI, AppKit, IOKit | Active |
+| [**leWheel**](leWheel/) | 100% free radial app launcher and window switcher with hold-to-navigate flick gestures. | Swift, SwiftUI, AppKit | Active |
 
 ---
 
@@ -72,6 +73,20 @@ A modern, unlocked fan controller and thermal telemetry utility for macOS.
 
 ---
 
+## 🎡 [leWheel](leWheel/)
+
+A 100% free, native macOS radial app launcher and window switcher with hold-to-navigate flick mechanics.
+
+- **Dynamic Radial Wheel**: Seamlessly holds any number of apps with adaptive sector geometry, concentric multi-rings, and customizable wheel diameter (`140px`–`320px`).
+- **Dual-Press Modifier Trigger (`⌥⌘`)**: Press and hold `Option + Command` anywhere to instantly summon the wheel at your cursor.
+- **Hold-to-Navigate & Release-to-Launch**: Flick your mouse toward an app and release the shortcut to launch in under 50ms without clicking.
+- **Reliable Top-Layer Window Restoration**: Uses native LaunchServices reopen events (`kAEReopenApplication`) and Accessibility elevation (`AXUIElement`) to guarantee that apps with closed (`Cmd+W`) or minimized windows always restore and pop to the top layer directly at your cursor.
+- **Lowkey macOS Frosted Glass**: Sleek, distraction-free native macOS frosted vibrancy with clean gray hover highlights, transparent center deadzone, and haptic trackpad feedback.
+- **Running App Switcher Mode**: Radial `Cmd+Tab` replacement displaying currently active apps with instant `Cmd+Q` termination right from the wheel.
+- **100% Private & Unlimited**: Zero 5-item slot caps, zero 300-switch limits, zero paywalls, zero telemetry.
+
+---
+
 ## 📥 How to Download
 
 You can clone the entire monorepo or download individual projects:
@@ -121,6 +136,14 @@ git clone --depth 1 --filter=blob:none --sparse https://github.com/le-fische/leM
 cd leMac && git sparse-checkout set leFan
 ```
 > For setup and usage details, see [leFan/README.md](leFan/README.md).
+
+#### 🎡 [leWheel](leWheel/)
+100% free radial app launcher and window switcher with hold-to-navigate flick gestures.
+```bash
+git clone --depth 1 --filter=blob:none --sparse https://github.com/le-fische/leMac.git
+cd leMac && git sparse-checkout set leWheel
+```
+> For setup and usage details, see [leWheel/README.md](leWheel/README.md).
 
 ---
 
