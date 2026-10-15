@@ -193,8 +193,10 @@ final class SystemAudioMonitor: ObservableObject {
         rawTreble = trebleVal
         rawEnergy = tot
 
-        // Dynamic beat accent detection: transient kick/bass spike
-        let beatImpulse = max(0.0, ((subVal * 0.6 + bassVal * 0.4) - 0.15) * 1.8)
+        // Dynamic beat accent detection: transient kick/bass spike and snare/clap attack
+        let bassHit = max(0.0, ((subVal * 0.65 + bassVal * 0.35) - 0.15) * 1.8)
+        let snareHit = max(0.0, ((midVal * 0.65 + highMidVal * 0.35) - 0.20) * 1.8)
+        let beatImpulse = min(1.0, max(bassHit, snareHit))
         if beatImpulse > rawBeat {
             rawBeat = min(1.0, beatImpulse)
         } else {
@@ -341,16 +343,6 @@ final class SystemAudioMonitor: ObservableObject {
             energy = min(1.0, max(0.0, en))
         } else {
             // High-fidelity dynamic organic simulation calibrated for 60 fps
-            let vol = VolumeManager.shared.rawVolume
-            let isMuted = VolumeManager.shared.isMuted
-            guard !isMuted else {
-                bandLevels = .silent
-                beatLevel = 0
-                energy = 0
-                return
-            }
-
-            let amp = max(0.40, sqrtf(vol > 0 ? vol : 0.65))
             let time = Float(CACurrentMediaTime())
 
             // Musical tempo tracking (~124 BPM, ~0.484s per beat)
@@ -363,7 +355,7 @@ final class SystemAudioMonitor: ObservableObject {
             let transientDecay = expf(-beatPhase * 6.5)
             let kickTransient = (!isSnareBeat ? 1.0 : 0.25) * transientDecay
             let snareTransient = (isSnareBeat ? 1.0 : 0.20) * transientDecay
-            let overallBeatHit = max(kickTransient, snareTransient) * amp
+            let overallBeatHit = max(kickTransient, snareTransient)
 
             let freqs: [Float] = [2.8, 3.4, 4.1, 5.0, 6.2]
             let weights: [Float] = [1.0, 0.90, 0.80, 0.70, 0.60]
@@ -385,16 +377,17 @@ final class SystemAudioMonitor: ObservableObject {
                     transientBoost = snareTransient * 0.30
                 }
 
-                currentBands[i] = max(0.14, min(1.0, (organic * 0.65 + transientBoost) * amp * weights[i]))
+                // Volume does NOT scale the bars - constant lively amplitude
+                currentBands[i] = max(0.14, min(1.0, (organic * 0.60 + transientBoost) * weights[i]))
             }
 
             // Snappy attack, smooth decay
-            smoothedSubBass += (currentBands[0] > smoothedSubBass ? 0.65 : 0.25) * (currentBands[0] - smoothedSubBass)
-            smoothedBass += (currentBands[1] > smoothedBass ? 0.65 : 0.25) * (currentBands[1] - smoothedBass)
-            smoothedMid += (currentBands[2] > smoothedMid ? 0.65 : 0.25) * (currentBands[2] - smoothedMid)
-            smoothedHighMid += (currentBands[3] > smoothedHighMid ? 0.65 : 0.25) * (currentBands[3] - smoothedHighMid)
-            smoothedTreble += (currentBands[4] > smoothedTreble ? 0.65 : 0.25) * (currentBands[4] - smoothedTreble)
-            smoothedBeat += (overallBeatHit > smoothedBeat ? 0.85 : 0.20) * (overallBeatHit - smoothedBeat)
+            smoothedSubBass += (currentBands[0] > smoothedSubBass ? 0.70 : 0.22) * (currentBands[0] - smoothedSubBass)
+            smoothedBass += (currentBands[1] > smoothedBass ? 0.70 : 0.22) * (currentBands[1] - smoothedBass)
+            smoothedMid += (currentBands[2] > smoothedMid ? 0.70 : 0.22) * (currentBands[2] - smoothedMid)
+            smoothedHighMid += (currentBands[3] > smoothedHighMid ? 0.70 : 0.22) * (currentBands[3] - smoothedHighMid)
+            smoothedTreble += (currentBands[4] > smoothedTreble ? 0.70 : 0.22) * (currentBands[4] - smoothedTreble)
+            smoothedBeat += (overallBeatHit > smoothedBeat ? 0.90 : 0.20) * (overallBeatHit - smoothedBeat)
 
             bandLevels = AudioBandLevels(
                 subBass: max(0.14, min(1.0, smoothedSubBass)),
@@ -404,7 +397,7 @@ final class SystemAudioMonitor: ObservableObject {
                 treble: max(0.14, min(1.0, smoothedTreble))
             )
             beatLevel = min(1.0, max(0.0, smoothedBeat))
-            energy = amp
+            energy = min(1.0, max(0.3, overallBeatHit))
         }
     }
 }
