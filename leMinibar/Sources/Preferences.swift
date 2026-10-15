@@ -1,10 +1,17 @@
 import Foundation
 
-enum IconStyle: String, CaseIterable {
-    case dot = "Minimal Dot (●)"
-    case chevron = "Chevron Arrow (‹ ›)"
-    case line = "Line (—)"
-    case tray = "Folder / Drawer"
+enum DotSize: String, CaseIterable {
+    case small = "Small & Thin (5.5 pt)"
+    case medium = "Medium & Crisp (6.0 pt)"
+    case regular = "Classic (7.5 pt)"
+    
+    var diameter: Double {
+        switch self {
+        case .small: return 5.5
+        case .medium: return 6.0
+        case .regular: return 7.5
+        }
+    }
 }
 
 enum AutoCollapseDuration: Int, CaseIterable {
@@ -29,21 +36,21 @@ class Preferences {
     static let shared = Preferences()
     private let defaults = UserDefaults.standard
     
-    private let kIconStyle = "minibar_icon_style"
-    private let kAutoCollapse = "minibar_auto_collapse"
-    private let kIsCollapsed = "minibar_is_collapsed"
-    private let kHasSeenWelcome = "minibar_has_seen_welcome"
+    private let kDotSize = "leminibar_dot_size"
+    private let kAutoCollapse = "leminibar_auto_collapse"
+    private let kIsCollapsed = "leminibar_is_collapsed"
+    private let kHasSeenWelcome = "leminibar_has_seen_welcome"
     
-    var iconStyle: IconStyle {
+    var dotSize: DotSize {
         get {
-            guard let raw = defaults.string(forKey: kIconStyle),
-                  let style = IconStyle(rawValue: raw) else {
-                return .dot
+            guard let raw = defaults.string(forKey: kDotSize),
+                  let size = DotSize(rawValue: raw) else {
+                return .medium
             }
-            return style
+            return size
         }
         set {
-            defaults.set(newValue.rawValue, forKey: kIconStyle)
+            defaults.set(newValue.rawValue, forKey: kDotSize)
         }
     }
     

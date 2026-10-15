@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>com.local.MiniBar</string>
+    <string>com.local.leMinibar</string>
     <key>CFBundleName</key>
-    <string>MiniBar</string>
+    <string>leMinibar</string>
     <key>CFBundleDisplayName</key>
-    <string>MiniBar</string>
+    <string>leMinibar</string>
     <key>CFBundleExecutable</key>
-    <string>MiniBar</string>
+    <string>leMinibar</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>

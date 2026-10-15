@@ -11,8 +11,9 @@ Each project in this repository is designed to be self-contained, high-performan
 | Project | Description | Tech Stack | Status |
 | :--- | :--- | :--- | :--- |
 | [**leNotch**](leNotch/) | Dynamic Island & Notch utility with 60 FPS audio visualizer glow, smart OCR shelf, HUD replacements, and live weather. | Swift, SwiftUI, AppKit, Metal, Vision | Active |
-| [**MiniBar**](MiniBar/) | Minimalist collapsible menu bar organizer to declutter MacBook status icons with zero dependencies. | Swift, AppKit, Cocoa | Active |
+| [**leMinibar**](leMinibar/) | Minimalist collapsible menu bar organizer to declutter MacBook status icons with zero dependencies. | Swift, AppKit, Cocoa | Active |
 | [**leCPUGPU**](leCPUGPU/) | Lightweight real-time CPU, GPU, RAM, and thermal monitor menu bar application for Apple Silicon. | Swift, IOKit, Metal, AppKit | Active |
+| [**leFan**](leFan/) | Modern unlocked fan controller with tachometers, dynamic sensor curves, and presets. | Swift, SwiftUI, AppKit, IOKit | Active |
 
 ---
 
@@ -33,7 +34,7 @@ An interactive Dynamic Island and MacBook Notch enhancement utility.
 
 ---
 
-## 🍸 [MiniBar](MiniBar/)
+## 🍸 [leMinibar](leMinibar/)
 
 A minimalist, zero-dependency menu bar manager for macOS.
 
@@ -55,6 +56,18 @@ A lightweight, native menu bar monitor for CPU, GPU, and Hardware Thermals with 
 - **RAM & Top Processes**: Live Unified Memory metrics and top 5 CPU-consuming processes.
 - **Unit & Metric Toggle**: Switch between Percentages, Temperatures (°C / °F), or Both right from the menu.
 - **Ultra-Lightweight**: Native Swift, ~240 KB binary, < 0.2% CPU idle, automatic sleep/wake power conservation.
+
+---
+
+## 🌪️ [leFan](leFan/)
+
+A modern, unlocked fan controller and thermal telemetry utility for macOS.
+
+- **Dynamic Sensor Curves (Un-paywalled)**: Fine-grained temperature-to-RPM curves based on any sensor (CPU Average, Max Core, GPU, SSD, or Battery).
+- **Custom Cooling Presets**: Unlimited one-click profiles (Silent, Balanced, Performance, Max Blast, or custom user profiles).
+- **Interactive Tachometer Gauges**: Glowing circular dials with live RPM, min/max limits, percent of max speed, and spinning fan animations.
+- **70+ Thermal Sensors**: Granular M-series core die telemetry, storage, battery, and hotspot telemetry with live sparklines.
+- **Menu Bar Extra Companion**: Configurable status bar item with instant popover quick sliders and preset buttons.
 
 ---
 

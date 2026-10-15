@@ -2,25 +2,28 @@
 set -e
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-APP_BUNDLE="$DIR/MiniBar.app"
+APP_BUNDLE="$DIR/leMinibar.app"
 MACOS_DIR="$APP_BUNDLE/Contents/MacOS"
 RESOURCES_DIR="$APP_BUNDLE/Contents/Resources"
 
-echo "Building MiniBar..."
+echo "Building leMinibar..."
 mkdir -p "$MACOS_DIR"
 mkdir -p "$RESOURCES_DIR"
 
 cp "$DIR/Info.plist" "$APP_BUNDLE/Contents/Info.plist"
 
+if [ -f "/private/tmp/minibar.iconset/icon_512x512.png" ]; then
+    iconutil -c icns /private/tmp/minibar.iconset -o "$RESOURCES_DIR/AppIcon.icns" 2>/dev/null || true
+fi
+
 swiftc -O \
     "$DIR/Sources/Preferences.swift" \
     "$DIR/Sources/AppDelegate.swift" \
     "$DIR/Sources/main.swift" \
-    -o "$MACOS_DIR/MiniBar" \
+    -o "$MACOS_DIR/leMinibar" \
     -framework Cocoa \
     -framework ServiceManagement
 
-# Ad-hoc sign the app so macOS treats it as a valid bundle
 codesign --force --deep --sign - "$APP_BUNDLE"
 
 echo "Successfully built $APP_BUNDLE"
