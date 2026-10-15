@@ -14,15 +14,19 @@ public class AppDelegate: NSObject, NSApplicationDelegate, MenuControllerDelegat
         // Configure NSStatusItem
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem.menu = menuController.menu
+        if let button = statusItem.button {
+            button.imagePosition = .imageOnly
+            button.imageScaling = .scaleNone
+        }
         
         // Register sleep / wake observers to save power
         let nc = NSWorkspace.shared.notificationCenter
         nc.addObserver(self, selector: #selector(macWillSleep), name: NSWorkspace.willSleepNotification, object: nil)
         nc.addObserver(self, selector: #selector(macDidWake), name: NSWorkspace.didWakeNotification, object: nil)
         
-        // Initial tick & timer setup
+        // Initial timer setup & immediate render
         startTimer()
-        tick()
+        updateStatusItemImage()
     }
     
     public func applicationWillTerminate(_ notification: Notification) {
@@ -53,11 +57,23 @@ public class AppDelegate: NSObject, NSApplicationDelegate, MenuControllerDelegat
     @objc private func tick() {
         guard !isSleeping else { return }
         
+        // While user has the menu open, pause background mutations to prevent AppKit from dropping clicks
+        if menuController.isMenuOpen {
+            return
+        }
+        
         let monitor = SystemMonitor.shared
         monitor.update(includeProcesses: false)
         
         let thermal = ThermalMonitor.shared
         thermal.updateIfNeeded()
+        
+        updateStatusItemImage()
+    }
+    
+    private func updateStatusItemImage() {
+        let monitor = SystemMonitor.shared
+        let thermal = ThermalMonitor.shared
         
         let image = GraphRenderer.shared.renderImage(
             cpu: monitor.cpuTotalUsage,
@@ -69,7 +85,11 @@ public class AppDelegate: NSObject, NSApplicationDelegate, MenuControllerDelegat
         )
         
         if let button = statusItem.button {
-            button.image = image
+            // Only update image if not currently being clicked/pressed down
+            if !button.isHighlighted {
+                button.image = image
+            }
+            
             let cpuT = thermal.format(celsius: thermal.cpuTemperature, short: false)
             let gpuT = thermal.format(celsius: thermal.gpuTemperature, short: false)
             let peakT = thermal.format(celsius: thermal.peakTemperature, short: false)
@@ -84,8 +104,6 @@ public class AppDelegate: NSObject, NSApplicationDelegate, MenuControllerDelegat
                 thermal.thermalStateString
             )
         }
-        
-        menuController.updateMetrics(monitor: monitor)
     }
     
     // MARK: - Power & Sleep Handling
@@ -98,29 +116,29 @@ public class AppDelegate: NSObject, NSApplicationDelegate, MenuControllerDelegat
     @objc private func macDidWake() {
         isSleeping = false
         startTimer()
-        tick()
+        updateStatusItemImage()
     }
     
     // MARK: - MenuControllerDelegate
     
     public func didChangeStyle(_ style: GraphStyle) {
-        tick()
+        updateStatusItemImage()
     }
     
     public func didChangeTheme(_ theme: ColorTheme) {
-        tick()
+        updateStatusItemImage()
     }
     
     public func didChangeRefreshInterval(_ interval: TimeInterval) {
         startTimer()
-        tick()
+        updateStatusItemImage()
     }
     
     public func didChangeMetricMode(_ mode: MetricDisplayMode) {
-        tick()
+        updateStatusItemImage()
     }
     
     public func didChangeTempUnit(_ unit: TemperatureUnit) {
-        tick()
+        updateStatusItemImage()
     }
 }

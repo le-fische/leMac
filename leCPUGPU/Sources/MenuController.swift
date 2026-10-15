@@ -12,6 +12,7 @@ public protocol MenuControllerDelegate: AnyObject {
 public class MenuController: NSObject, NSMenuDelegate {
     public weak var delegate: MenuControllerDelegate?
     public let menu = NSMenu()
+    public private(set) var isMenuOpen: Bool = false
     
     // Dynamic Menu Items
     private var headerItem: NSMenuItem!
@@ -55,67 +56,76 @@ public class MenuController: NSObject, NSMenuDelegate {
     private func buildMenu() {
         menu.removeAllItems()
         
-        // 1. Hardware Header
+        // 1. Hardware Header (Clickable -> Opens About)
         let hw = HardwareInfo.shared
-        headerItem = NSMenuItem(title: " \(hw.summaryString)", action: nil, keyEquivalent: "")
-        headerItem.isEnabled = false
+        headerItem = NSMenuItem(title: " \(hw.summaryString)", action: #selector(openAbout), keyEquivalent: "")
+        headerItem.target = self
+        headerItem.toolTip = "Click to view hardware specifications"
         menu.addItem(headerItem)
         
         menu.addItem(NSMenuItem.separator())
         
-        // 2. CPU Section
-        cpuHeaderItem = NSMenuItem(title: "CPU: 0%", action: nil, keyEquivalent: "")
+        // 2. CPU Section (Clickable -> Opens Activity Monitor CPU)
+        cpuHeaderItem = NSMenuItem(title: "CPU: 0%", action: #selector(openActivityMonitor), keyEquivalent: "")
+        cpuHeaderItem.target = self
         cpuHeaderItem.image = NSImage(systemSymbolName: "cpu", accessibilityDescription: "CPU")
+        cpuHeaderItem.toolTip = "Click to open Activity Monitor"
         menu.addItem(cpuHeaderItem)
         
-        cpuDetailItem = NSMenuItem(title: "  User: 0%  •  System: 0%  •  Idle: 100%", action: nil, keyEquivalent: "")
-        cpuDetailItem.isEnabled = false
+        cpuDetailItem = NSMenuItem(title: "  User: 0%  •  System: 0%  •  Idle: 100%", action: #selector(openActivityMonitor), keyEquivalent: "")
+        cpuDetailItem.target = self
         menu.addItem(cpuDetailItem)
         
-        cpuCoresItem = NSMenuItem(title: "  Cores: Loading...", action: nil, keyEquivalent: "")
-        cpuCoresItem.isEnabled = false
+        cpuCoresItem = NSMenuItem(title: "  Cores: Loading...", action: #selector(openActivityMonitor), keyEquivalent: "")
+        cpuCoresItem.target = self
         menu.addItem(cpuCoresItem)
         
         menu.addItem(NSMenuItem.separator())
         
-        // 3. GPU Section
-        gpuHeaderItem = NSMenuItem(title: "GPU: 0%", action: nil, keyEquivalent: "")
+        // 3. GPU Section (Clickable -> Opens Activity Monitor)
+        gpuHeaderItem = NSMenuItem(title: "GPU: 0%", action: #selector(openActivityMonitor), keyEquivalent: "")
+        gpuHeaderItem.target = self
         gpuHeaderItem.image = NSImage(systemSymbolName: "display", accessibilityDescription: "GPU")
+        gpuHeaderItem.toolTip = "Click to open Activity Monitor"
         menu.addItem(gpuHeaderItem)
         
-        gpuDetailItem = NSMenuItem(title: "  Renderer: 0%  •  Tiler: 0%", action: nil, keyEquivalent: "")
-        gpuDetailItem.isEnabled = false
+        gpuDetailItem = NSMenuItem(title: "  Renderer: 0%  •  Tiler: 0%", action: #selector(openActivityMonitor), keyEquivalent: "")
+        gpuDetailItem.target = self
         menu.addItem(gpuDetailItem)
         
-        gpuMemoryItem = NSMenuItem(title: "  Memory: 0 MB In-Use", action: nil, keyEquivalent: "")
-        gpuMemoryItem.isEnabled = false
+        gpuMemoryItem = NSMenuItem(title: "  Memory: 0 MB In-Use", action: #selector(openActivityMonitor), keyEquivalent: "")
+        gpuMemoryItem.target = self
         menu.addItem(gpuMemoryItem)
         
         menu.addItem(NSMenuItem.separator())
         
-        // 4. Memory Section
-        ramHeaderItem = NSMenuItem(title: "RAM: 0%", action: nil, keyEquivalent: "")
+        // 4. Memory Section (Clickable -> Opens Activity Monitor)
+        ramHeaderItem = NSMenuItem(title: "RAM: 0%", action: #selector(openActivityMonitor), keyEquivalent: "")
+        ramHeaderItem.target = self
         ramHeaderItem.image = NSImage(systemSymbolName: "memorychip", accessibilityDescription: "RAM")
+        ramHeaderItem.toolTip = "Click to open Activity Monitor"
         menu.addItem(ramHeaderItem)
         
         menu.addItem(NSMenuItem.separator())
         
-        // 5. Thermal Section
-        thermalHeaderItem = NSMenuItem(title: "SoC Temp: Loading...", action: nil, keyEquivalent: "")
+        // 5. Thermal Section (Clickable -> Opens Activity Monitor)
+        thermalHeaderItem = NSMenuItem(title: "SoC Temp: Loading...", action: #selector(openActivityMonitor), keyEquivalent: "")
+        thermalHeaderItem.target = self
         thermalHeaderItem.image = NSImage(systemSymbolName: "thermometer.medium", accessibilityDescription: "Thermal")
+        thermalHeaderItem.toolTip = "Click to open Activity Monitor"
         menu.addItem(thermalHeaderItem)
         
         menu.addItem(NSMenuItem.separator())
         
-        // 6. Top Processes Section
-        processHeaderItem = NSMenuItem(title: "Top CPU Processes:", action: nil, keyEquivalent: "")
+        // 6. Top Processes Section (Clickable -> Opens Activity Monitor)
+        processHeaderItem = NSMenuItem(title: "Top CPU Processes:", action: #selector(openActivityMonitor), keyEquivalent: "")
+        processHeaderItem.target = self
         processHeaderItem.image = NSImage(systemSymbolName: "chart.bar.fill", accessibilityDescription: "Processes")
-        processHeaderItem.isEnabled = false
         menu.addItem(processHeaderItem)
         
         for _ in 0..<5 {
-            let item = NSMenuItem(title: "  Loading...", action: nil, keyEquivalent: "")
-            item.isEnabled = false
+            let item = NSMenuItem(title: "  Loading...", action: #selector(openActivityMonitor), keyEquivalent: "")
+            item.target = self
             processItems.append(item)
             menu.addItem(item)
         }
@@ -308,10 +318,15 @@ public class MenuController: NSObject, NSMenuDelegate {
     // MARK: - NSMenuDelegate
     
     public func menuWillOpen(_ menu: NSMenu) {
+        isMenuOpen = true
         SystemMonitor.shared.update(includeProcesses: true)
         ThermalMonitor.shared.updateIfNeeded(force: true)
         updateMetrics(monitor: SystemMonitor.shared)
         updateLaunchAtLoginState()
+    }
+    
+    public func menuDidClose(_ menu: NSMenu) {
+        isMenuOpen = false
     }
     
     // MARK: - Actions
