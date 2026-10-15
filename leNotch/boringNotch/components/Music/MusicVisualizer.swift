@@ -66,8 +66,8 @@ class AudioSpectrum: NSView {
 
     private func startAnimating() {
         guard animationTimer == nil else { return }
-        // 60 fps for ultra-smooth visualizer updates in .common run loop mode
-        let timer = Timer(timeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
+        // 30 fps for smooth, lightweight visualizer updates in .common run loop mode
+        let timer = Timer(timeInterval: 1.0 / 30.0, repeats: true) { [weak self] _ in
             self?.updateBars()
         }
         RunLoop.main.add(timer, forMode: .common)
@@ -155,64 +155,60 @@ struct AudioSpectrumView: NSViewRepresentable {
 // MARK: - Beat-Reactive Edge Glow View
 
 struct AlbumEdgeGlowView: View {
-    @ObservedObject var audioMonitor = SystemAudioMonitor.shared
-    @ObservedObject var musicManager = MusicManager.shared
     let cornerRadius: CGFloat
     let isMinimized: Bool
 
     var body: some View {
-        if Defaults[.enableExpandedVisualizerGlow] && musicManager.isPlaying {
-            // Beat transient detection: kicks, 808s, snares, claps
-            let beat = CGFloat(audioMonitor.beatLevel)
-            let kick = CGFloat(audioMonitor.bandLevels.subBass)
-            let snare = CGFloat(audioMonitor.bandLevels.mid)
-            let impulse = max(beat, max(0.0, kick - 0.40) * 1.8, max(0.0, snare - 0.40) * 1.8)
-
-            // Two distinct states: Strong Beat vs Weak Beat
-            let isStrongBeat = impulse > 0.35
-
+        if Defaults[.enableExpandedVisualizerGlow] && MusicManager.shared.isPlaying {
             if isMinimized {
-                // Mini notch display: pure opacity pulse (no brightness boost so it never overwhelms album art)
-                let beat = CGFloat(audioMonitor.beatLevel)
-                let kick = CGFloat(audioMonitor.bandLevels.subBass)
-                let snare = CGFloat(audioMonitor.bandLevels.mid)
-                let impulse = max(beat, max(0.0, kick - 0.40) * 1.8, max(0.0, snare - 0.40) * 1.8)
-                let isStrongBeat = impulse > 0.35
-
-                let scale: CGFloat = 1.12
-                let blurRadius: CGFloat = 2.8
-                // Subtle opacity modulation without touching brightness
-                let opacity: Double = isStrongBeat ? 0.82 : 0.52
-
-                Image(nsImage: musicManager.albumArt)
-                    .resizable()
-                    .aspectRatio(1, contentMode: .fit)
-                    .saturation(1.5)
-                    .brightness(0.0)
-                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-                    .scaleEffect(scale)
-                    .blur(radius: blurRadius)
-                    .opacity(opacity)
-                    .allowsHitTesting(false)
-                    .animation(.easeOut(duration: 0.10), value: isStrongBeat)
+                MiniAlbumGlowView(cornerRadius: cornerRadius)
             } else {
-                // Main expanded display: permanent, beautiful ambient album halo
-                let scale: CGFloat = 1.22
-                let blurRadius: CGFloat = 20.0
-                let opacity: Double = 0.65
-
-                Image(nsImage: musicManager.albumArt)
-                    .resizable()
-                    .aspectRatio(1, contentMode: .fit)
-                    .saturation(1.5)
-                    .brightness(0.04)
-                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-                    .scaleEffect(scale)
-                    .blur(radius: blurRadius)
-                    .opacity(opacity)
-                    .allowsHitTesting(false)
+                ExpandedAlbumGlowView(cornerRadius: cornerRadius)
             }
         }
+    }
+}
+
+private struct MiniAlbumGlowView: View {
+    @ObservedObject var audioMonitor = SystemAudioMonitor.shared
+    @ObservedObject var musicManager = MusicManager.shared
+    let cornerRadius: CGFloat
+
+    var body: some View {
+        // Mini notch display: pure opacity pulse (only re-evaluates when beat state transitions)
+        let isStrongBeat = audioMonitor.isStrongBeat
+        let opacity: Double = isStrongBeat ? 0.82 : 0.52
+
+        Image(nsImage: musicManager.albumArt)
+            .resizable()
+            .aspectRatio(1, contentMode: .fit)
+            .saturation(1.5)
+            .brightness(0.0)
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .scaleEffect(1.12)
+            .blur(radius: 2.8)
+            .opacity(opacity)
+            .allowsHitTesting(false)
+            .animation(.easeOut(duration: 0.10), value: isStrongBeat)
+    }
+}
+
+private struct ExpandedAlbumGlowView: View {
+    @ObservedObject var musicManager = MusicManager.shared
+    let cornerRadius: CGFloat
+
+    var body: some View {
+        // Main expanded display: permanent, beautiful ambient album halo (static, 0% CPU overhead)
+        Image(nsImage: musicManager.albumArt)
+            .resizable()
+            .aspectRatio(1, contentMode: .fit)
+            .saturation(1.5)
+            .brightness(0.04)
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .scaleEffect(1.22)
+            .blur(radius: 20.0)
+            .opacity(0.65)
+            .allowsHitTesting(false)
     }
 }
 
@@ -235,58 +231,62 @@ struct VinylRecordView: View {
 
     // MARK: - Mini Notch Vinyl
     private var miniVinylView: some View {
-        TimelineView(.animation(paused: !musicManager.isPlaying)) { timeline in
-            let time = timeline.date.timeIntervalSinceReferenceDate
-            let rotation = (time * 100.0).truncatingRemainder(dividingBy: 360)
+        GeometryReader { geo in
+            let size = min(geo.size.width, geo.size.height)
+            let labelSize = size * 0.50
 
-            GeometryReader { geo in
-                let size = min(geo.size.width, geo.size.height)
-                ZStack {
-                    // Outer Black Rim
-                    Circle()
-                        .strokeBorder(
-                            LinearGradient(
-                                colors: [Color(white: 0.18), Color(white: 0.08)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
+            ZStack {
+                // Outer Black Rim (Static, does not re-render)
+                Circle()
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [Color(white: 0.18), Color(white: 0.08)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
 
-                    // Black Vinyl Disc
-                    Circle()
-                        .fill(Color(white: 0.06))
-                        .padding(1)
+                // Rotating Center Disc (30 fps smooth, lightweight cadence)
+                TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !musicManager.isPlaying)) { timeline in
+                    let time = timeline.date.timeIntervalSinceReferenceDate
+                    let rotation = (time * 100.0).truncatingRemainder(dividingBy: 360)
 
-                    // Subtle Groove
-                    Circle()
-                        .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
-                        .frame(width: size * 0.72, height: size * 0.72)
-
-                    // Rotating Center Album Label
-                    let labelSize = size * 0.50
                     ZStack {
-                        Image(nsImage: musicManager.albumArt)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: labelSize, height: labelSize)
-                            .clipShape(Circle())
-                            .overlay(
-                                Circle().stroke(Color.white.opacity(0.2), lineWidth: 0.5)
-                            )
-
-                        // Center Spindle
+                        // Black Vinyl Disc
                         Circle()
-                            .fill(Color(white: 0.08))
-                            .frame(width: size * 0.12, height: size * 0.12)
-                            .overlay(
-                                Circle().stroke(Color(white: 0.20), lineWidth: 0.5)
-                            )
+                            .fill(Color(white: 0.06))
+                            .padding(1)
+
+                        // Subtle Groove
+                        Circle()
+                            .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
+                            .frame(width: size * 0.72, height: size * 0.72)
+
+                        // Rotating Center Album Label
+                        ZStack {
+                            Image(nsImage: musicManager.albumArt)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: labelSize, height: labelSize)
+                                .clipShape(Circle())
+                                .overlay(
+                                    Circle().stroke(Color.white.opacity(0.2), lineWidth: 0.5)
+                                )
+
+                            // Center Spindle
+                            Circle()
+                                .fill(Color(white: 0.08))
+                                .frame(width: size * 0.12, height: size * 0.12)
+                                .overlay(
+                                    Circle().stroke(Color(white: 0.20), lineWidth: 0.5)
+                                )
+                        }
                     }
                     .rotationEffect(.degrees(rotation))
                 }
-                .frame(width: size, height: size)
             }
+            .frame(width: size, height: size)
         }
     }
 
@@ -364,7 +364,7 @@ struct VinylRecordView: View {
 
                 // 3. Spinning Vinyl LP Record
                 let vinylSize = size * 0.79
-                TimelineView(.animation(paused: !musicManager.isPlaying)) { timeline in
+                TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !musicManager.isPlaying)) { timeline in
                     let time = timeline.date.timeIntervalSinceReferenceDate
                     let rotation = (time * 100.0).truncatingRemainder(dividingBy: 360)
 

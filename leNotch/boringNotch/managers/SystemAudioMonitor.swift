@@ -33,9 +33,10 @@ final class SystemAudioMonitor: ObservableObject {
 
     static let shared = SystemAudioMonitor()
 
-    @Published private(set) var bandLevels = AudioBandLevels.silent
-    @Published private(set) var beatLevel: Float = 0.0      // 0...1 transient beat / accent pulse
-    @Published private(set) var energy: Float = 0.0         // 0...1 overall track energy / amplitude
+    private(set) var bandLevels = AudioBandLevels.silent
+    private(set) var beatLevel: Float = 0.0      // 0...1 transient beat / accent pulse
+    private(set) var energy: Float = 0.0         // 0...1 overall track energy / amplitude
+    @Published private(set) var isStrongBeat = false // Only publishes when beat state actually changes
     @Published private(set) var isCapturing = false
 
     nonisolated(unsafe) private var tapID: AudioObjectID = 0
@@ -125,6 +126,7 @@ final class SystemAudioMonitor: ObservableObject {
         bandLevels = .silent
         beatLevel = 0
         energy = 0
+        if isStrongBeat { isStrongBeat = false }
     }
 
     // MARK: - Realtime Audio Frame Processing (CoreAudio Thread)
@@ -308,6 +310,7 @@ final class SystemAudioMonitor: ObservableObject {
             )
             beatLevel = smoothedBeat
             energy = 0
+            if isStrongBeat { isStrongBeat = false }
             return
         }
 
@@ -398,6 +401,15 @@ final class SystemAudioMonitor: ObservableObject {
             )
             beatLevel = min(1.0, max(0.0, smoothedBeat))
             energy = min(1.0, max(0.3, overallBeatHit))
+        }
+
+        let beat = CGFloat(smoothedBeat)
+        let kick = CGFloat(smoothedSubBass)
+        let snare = CGFloat(smoothedMid)
+        let impulse = max(beat, max(0.0, kick - 0.40) * 1.8, max(0.0, snare - 0.40) * 1.8)
+        let newStrongBeat = (impulse > 0.35)
+        if newStrongBeat != isStrongBeat {
+            isStrongBeat = newStrongBeat
         }
     }
 }
