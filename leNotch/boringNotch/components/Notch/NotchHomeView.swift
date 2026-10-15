@@ -37,10 +37,12 @@ struct AlbumArtView: View {
 
     var body: some View {
         ZStack(alignment: .center) {
-            if Defaults[.enableExpandedVisualizerGlow] {
-                AlbumEdgeGlowView(cornerRadius: cornerRadius, isMinimized: false)
-            } else if Defaults[.lightingEffect] {
-                albumArtBackground
+            if !Defaults[.enableVinylPlayerMain] {
+                if Defaults[.enableExpandedVisualizerGlow] {
+                    AlbumEdgeGlowView(cornerRadius: cornerRadius, isMinimized: false)
+                } else if Defaults[.lightingEffect] {
+                    albumArtBackground
+                }
             }
             albumArtButton
         }
@@ -65,7 +67,13 @@ struct AlbumArtView: View {
             musicManager.openMusicApp()
         } label: {
             ZStack(alignment: .bottomTrailing) {
-                albumArtImage
+                if Defaults[.enableVinylPlayerMain] {
+                    VinylRecordView(isMinimized: false)
+                        .aspectRatio(1, contentMode: .fit)
+                        .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                } else {
+                    albumArtImage
+                }
                 appIconOverlay
             }
         }

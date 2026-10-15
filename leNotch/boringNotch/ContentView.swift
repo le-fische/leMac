@@ -388,20 +388,25 @@ struct ContentView: View {
     func MusicLiveActivity() -> some View {
         HStack {
             ZStack {
-                if Defaults[.enableExpandedVisualizerGlow] {
+                if !Defaults[.enableVinylPlayerMini] && Defaults[.enableExpandedVisualizerGlow] {
                     AlbumEdgeGlowView(
                         cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed,
                         isMinimized: true
                     )
                 }
-                Image(nsImage: musicManager.albumArt)
-                    .resizable()
-                    .clipped()
-                    .clipShape(
-                        RoundedRectangle(
-                            cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed)
-                    )
-                    .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                if Defaults[.enableVinylPlayerMini] {
+                    VinylRecordView(isMinimized: true)
+                        .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                } else {
+                    Image(nsImage: musicManager.albumArt)
+                        .resizable()
+                        .clipped()
+                        .clipShape(
+                            RoundedRectangle(
+                                cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed)
+                        )
+                        .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+                }
             }
             .frame(
                 width: max(0, vm.effectiveClosedNotchHeight - 12),

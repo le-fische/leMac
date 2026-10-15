@@ -216,6 +216,109 @@ struct AlbumEdgeGlowView: View {
     }
 }
 
+// MARK: - Spinning Vinyl Record Player View
+
+struct VinylRecordView: View {
+    @ObservedObject var musicManager = MusicManager.shared
+    let isMinimized: Bool
+
+    var body: some View {
+        TimelineView(.animation(paused: !musicManager.isPlaying)) { timeline in
+            let time = timeline.date.timeIntervalSinceReferenceDate
+            // ~33 RPM aesthetic spin (1 full revolution every ~3.6 seconds = 100 deg/s)
+            let rotation = (time * 100.0).truncatingRemainder(dividingBy: 360)
+
+            GeometryReader { geo in
+                let size = min(geo.size.width, geo.size.height)
+                ZStack {
+                    // Outer Black Vinyl Disc
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    Color(white: 0.15),
+                                    Color(white: 0.08),
+                                    Color(white: 0.04)
+                                ],
+                                center: .center,
+                                startRadius: size * 0.18,
+                                endRadius: size * 0.50
+                            )
+                        )
+                        .shadow(color: .black.opacity(0.4), radius: isMinimized ? 1 : 4, x: 0, y: isMinimized ? 1 : 2)
+
+                    // Concentric Grooves
+                    if !isMinimized {
+                        Circle()
+                            .stroke(Color.white.opacity(0.06), lineWidth: 1)
+                            .frame(width: size * 0.88, height: size * 0.88)
+                        Circle()
+                            .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                            .frame(width: size * 0.76, height: size * 0.76)
+                        Circle()
+                            .stroke(Color.white.opacity(0.06), lineWidth: 1)
+                            .frame(width: size * 0.64, height: size * 0.64)
+                        Circle()
+                            .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                            .frame(width: size * 0.54, height: size * 0.54)
+                    } else {
+                        Circle()
+                            .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
+                            .frame(width: size * 0.82, height: size * 0.82)
+                        Circle()
+                            .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
+                            .frame(width: size * 0.65, height: size * 0.65)
+                    }
+
+                    // Vinyl sheen / light reflections (angular sheen)
+                    Circle()
+                        .fill(
+                            AngularGradient(
+                                gradient: Gradient(colors: [
+                                    Color.white.opacity(isMinimized ? 0.08 : 0.12),
+                                    Color.clear,
+                                    Color.white.opacity(isMinimized ? 0.06 : 0.10),
+                                    Color.clear,
+                                    Color.white.opacity(isMinimized ? 0.08 : 0.12),
+                                    Color.clear,
+                                    Color.white.opacity(isMinimized ? 0.06 : 0.10),
+                                    Color.clear
+                                ]),
+                                center: .center
+                            )
+                        )
+                        .blendMode(.plusLighter)
+
+                    // Center Album Label
+                    let labelSize = size * (isMinimized ? 0.48 : 0.42)
+                    ZStack {
+                        Image(nsImage: musicManager.albumArt)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: labelSize, height: labelSize)
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.white.opacity(0.20), lineWidth: isMinimized ? 0.5 : 1)
+                            )
+
+                        // Center Spindle Hole
+                        Circle()
+                            .fill(Color.black)
+                            .frame(width: size * (isMinimized ? 0.12 : 0.08), height: size * (isMinimized ? 0.12 : 0.08))
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.gray.opacity(0.5), lineWidth: 0.5)
+                            )
+                    }
+                }
+                .frame(width: size, height: size)
+                .rotationEffect(.degrees(rotation))
+            }
+        }
+    }
+}
+
 #Preview {
     AudioSpectrumView(
         isPlaying: .constant(true),

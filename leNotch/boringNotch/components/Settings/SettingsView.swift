@@ -704,6 +704,21 @@ struct Media: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+
+            Section {
+                Defaults.Toggle(key: .enableVinylPlayerMain) {
+                    Text("Spinning vinyl record (Expanded View)")
+                }
+                Defaults.Toggle(key: .enableVinylPlayerMini) {
+                    Text("Spinning vinyl record (Mini Notch)")
+                }
+            } header: {
+                Text("Vinyl Player Style")
+            } footer: {
+                Text("Replaces standard album art with an authentic rotating LP vinyl record while music is playing. Glow aura is disabled in vinyl mode.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Media")
