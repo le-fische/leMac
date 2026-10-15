@@ -90,8 +90,27 @@ final class SystemAudioMonitor: ObservableObject {
         }
     }
 
+    private var heartbeatTimer: Timer?
+
+    private func startHeartbeat() {
+        heartbeatTimer?.invalidate()
+        let timer = Timer(timeInterval: 1.0 / 30.0, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.tick()
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        heartbeatTimer = timer
+    }
+
+    private func stopHeartbeat() {
+        heartbeatTimer?.invalidate()
+        heartbeatTimer = nil
+    }
+
     deinit {
         stopHardwareTap()
+        heartbeatTimer?.invalidate()
         stateLock.deinitialize(count: 1)
         stateLock.deallocate()
     }
@@ -111,11 +130,13 @@ final class SystemAudioMonitor: ObservableObject {
         if #available(macOS 14.4, *) {
             setupHardwareTap()
         }
+        startHeartbeat()
     }
 
     func stopCapturing() async {
         isCapturing = false
         stopHardwareTap()
+        stopHeartbeat()
 
         smoothedSubBass = 0
         smoothedBass = 0

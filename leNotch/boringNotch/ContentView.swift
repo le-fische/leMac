@@ -35,6 +35,9 @@ struct ContentView: View {
 
     @Default(.showNotHumanFace) var showNotHumanFace
 
+    @Default(.enableVinylPlayerMini) var enableVinylPlayerMini
+    @Default(.enableExpandedVisualizerGlow) var enableExpandedVisualizerGlow
+
     // Shared interactive spring for movement/resizing to avoid conflicting animations
     private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
 
@@ -388,13 +391,13 @@ struct ContentView: View {
     func MusicLiveActivity() -> some View {
         HStack {
             ZStack {
-                if !Defaults[.enableVinylPlayerMini] && Defaults[.enableExpandedVisualizerGlow] {
+                if !enableVinylPlayerMini && enableExpandedVisualizerGlow {
                     AlbumEdgeGlowView(
                         cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed,
                         isMinimized: true
                     )
                 }
-                if Defaults[.enableVinylPlayerMini] {
+                if enableVinylPlayerMini {
                     VinylRecordView(isMinimized: true)
                         .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
                 } else {
@@ -515,6 +518,7 @@ struct ContentView: View {
     }
 
     private func doOpen() {
+        MusicManager.shared.forceUpdate()
         withAnimation(animationSpring) {
             vm.open()
         }
@@ -526,6 +530,7 @@ struct ContentView: View {
         hoverTask?.cancel()
         
         if hovering {
+            MusicManager.shared.forceUpdate()
             withAnimation(animationSpring) {
                 isHovering = true
             }

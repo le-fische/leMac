@@ -155,11 +155,13 @@ struct AudioSpectrumView: NSViewRepresentable {
 // MARK: - Beat-Reactive Edge Glow View
 
 struct AlbumEdgeGlowView: View {
+    @ObservedObject var musicManager = MusicManager.shared
+    @Default(.enableExpandedVisualizerGlow) var enableGlow
     let cornerRadius: CGFloat
     let isMinimized: Bool
 
     var body: some View {
-        if Defaults[.enableExpandedVisualizerGlow] && MusicManager.shared.isPlaying {
+        if enableGlow && (musicManager.isPlaying || !musicManager.isPlayerIdle) {
             if isMinimized {
                 MiniAlbumGlowView(cornerRadius: cornerRadius)
             } else {
@@ -177,19 +179,29 @@ private struct MiniAlbumGlowView: View {
     var body: some View {
         // Mini notch display: pure opacity pulse (only re-evaluates when beat state transitions)
         let isStrongBeat = audioMonitor.isStrongBeat
-        let opacity: Double = isStrongBeat ? 0.82 : 0.52
+        let opacity: Double = isStrongBeat ? 0.85 : 0.55
 
-        Image(nsImage: musicManager.albumArt)
-            .resizable()
-            .aspectRatio(1, contentMode: .fit)
-            .saturation(1.5)
-            .brightness(0.0)
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-            .scaleEffect(1.12)
-            .blur(radius: 2.8)
-            .opacity(opacity)
-            .allowsHitTesting(false)
-            .animation(.easeOut(duration: 0.10), value: isStrongBeat)
+        ZStack {
+            // Ambient color aura backing
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(Color(nsColor: musicManager.avgColor))
+                .scaleEffect(1.18)
+                .blur(radius: 3.5)
+                .opacity(opacity * 0.6)
+
+            // Direct album art edge glow
+            Image(nsImage: musicManager.albumArt)
+                .resizable()
+                .aspectRatio(1, contentMode: .fit)
+                .saturation(1.5)
+                .brightness(0.04)
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                .scaleEffect(1.12)
+                .blur(radius: 2.8)
+                .opacity(opacity)
+        }
+        .allowsHitTesting(false)
+        .animation(.easeOut(duration: 0.10), value: isStrongBeat)
     }
 }
 
@@ -199,16 +211,26 @@ private struct ExpandedAlbumGlowView: View {
 
     var body: some View {
         // Main expanded display: permanent, beautiful ambient album halo (static, 0% CPU overhead)
-        Image(nsImage: musicManager.albumArt)
-            .resizable()
-            .aspectRatio(1, contentMode: .fit)
-            .saturation(1.5)
-            .brightness(0.04)
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-            .scaleEffect(1.22)
-            .blur(radius: 20.0)
-            .opacity(0.65)
-            .allowsHitTesting(false)
+        ZStack {
+            // Ambient colored backdrop using average album color for deep, rich aura
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(Color(nsColor: musicManager.avgColor))
+                .scaleEffect(1.25)
+                .blur(radius: 24.0)
+                .opacity(0.50)
+
+            // High-detail blurred album art halo
+            Image(nsImage: musicManager.albumArt)
+                .resizable()
+                .aspectRatio(1, contentMode: .fit)
+                .saturation(1.6)
+                .brightness(0.05)
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                .scaleEffect(1.22)
+                .blur(radius: 20.0)
+                .opacity(0.70)
+        }
+        .allowsHitTesting(false)
     }
 }
 

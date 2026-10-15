@@ -27,6 +27,9 @@ struct MusicPlayerView: View {
 struct AlbumArtView: View {
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var vm: BoringViewModel
+    @Default(.enableExpandedVisualizerGlow) var enableGlow
+    @Default(.enableVinylPlayerMain) var enableVinylPlayerMain
+    @Default(.lightingEffect) var lightingEffect
     let albumArtNamespace: Namespace.ID
 
     private var cornerRadius: CGFloat {
@@ -37,10 +40,10 @@ struct AlbumArtView: View {
 
     var body: some View {
         ZStack(alignment: .center) {
-            if !Defaults[.enableVinylPlayerMain] {
-                if Defaults[.enableExpandedVisualizerGlow] {
+            if !enableVinylPlayerMain {
+                if enableGlow {
                     AlbumEdgeGlowView(cornerRadius: cornerRadius, isMinimized: false)
-                } else if Defaults[.lightingEffect] {
+                } else if lightingEffect {
                     albumArtBackground
                 }
             }

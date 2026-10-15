@@ -294,6 +294,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
 
         appNotificationObservers.append(
+            NSWorkspace.shared.notificationCenter.addObserver(
+                forName: NSWorkspace.activeSpaceDidChangeNotification,
+                object: nil,
+                queue: .main
+            ) { _ in
+                Task { @MainActor in
+                    MusicManager.shared.forceUpdate()
+                }
+            }
+        )
+
+        appNotificationObservers.append(
             NotificationCenter.default.addObserver(
                 forName: Notification.Name.selectedScreenChanged, object: nil, queue: nil
             ) { [weak self] _ in
