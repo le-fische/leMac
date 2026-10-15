@@ -6,6 +6,10 @@
 	<string>leNotch</string>
 	<key>CFBundleName</key>
 	<string>leNotch</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>leNotch displays connected Bluetooth devices and battery levels in your notch.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>leNotch displays connected Bluetooth devices and battery levels in your notch.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
