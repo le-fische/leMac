@@ -11,7 +11,7 @@ Each project in this repository is designed to be self-contained, high-performan
 | Project | Description | Tech Stack | Status |
 | :--- | :--- | :--- | :--- |
 | [**leNotch**](leNotch/) | Dynamic Island & Notch utility with 60 FPS audio visualizer glow, smart OCR shelf, HUD replacements, and live weather. | Swift, SwiftUI, AppKit, Metal, Vision | Active |
-| [**leMinibar**](leMinibar/) | Minimalist collapsible menu bar organizer to declutter MacBook status icons with zero dependencies. | Swift, AppKit, Cocoa | Active |
+| [**leMinibar**](leMinibar/) | 1:1 Ice-inspired zero-permission menu bar minimizer with single hairline dot control. | Swift, AppKit, Cocoa | Active |
 | [**leCPUGPU**](leCPUGPU/) | Lightweight real-time CPU, GPU, RAM, and thermal monitor menu bar application for Apple Silicon. | Swift, IOKit, Metal, AppKit | Active |
 | [**leFan**](leFan/) | Modern unlocked fan controller with tachometers, dynamic sensor curves, and presets. | Swift, SwiftUI, AppKit, IOKit | Active |
 
@@ -36,12 +36,13 @@ An interactive Dynamic Island and MacBook Notch enhancement utility.
 
 ## 🍸 [leMinibar](leMinibar/)
 
-A minimalist, zero-dependency menu bar manager for macOS.
+A minimalist, zero-dependency menu bar minimizer and organizer for macOS.
 
-- **Collapsible Status Items**: Click to collapse or expand secondary status bar icons.
-- **Auto-Collapse**: Automatically hides icons after an idle period.
-- **Zero Overhead**: Pure AppKit with minimal memory (< 10 MB RAM) and zero background CPU usage.
-- **Instant Compilation**: Single command build script (`./build.sh`).
+- **Single Dot Control (1:1 Ice UX)**: Open circle (`○`) reveals secondary apps; solid dot (`●`) hides them.
+- **AirPods-Style Hairline Dot**: Ultra-sharp `0.85 pt` stroke matching Apple system icons for zero Retina blur.
+- **Zero Permissions**: 0 Accessibility permissions, 0 Screen Recording permissions, 100% private and offline.
+- **0.0% Battery Drain**: Pure event-driven AppKit with zero background polling and zero idle CPU usage.
+- **Drag-to-Organize (`⌘ + Drag`)**: Move the dot anywhere along the menu bar to choose what hides and what stays visible.
 
 ---
 
@@ -107,9 +108,9 @@ cd leNotch
 xcodebuild -scheme boringNotch -configuration Release build CODE_SIGNING_ALLOWED=NO
 ```
 
-### Build MiniBar
+### Build leMinibar
 ```bash
-cd MiniBar
+cd leMinibar
 chmod +x build.sh
 ./build.sh
 ```

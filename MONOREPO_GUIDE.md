@@ -9,7 +9,7 @@ This guide explains how to migrate any existing Mac project into the `leMac` mon
 ```
 leMac/
 ├── leNotch/              # Dynamic Island & Notch utility app
-├── MiniBar/              # Lightweight collapsible menu bar manager
+├── leMinibar/            # Lightweight collapsible menu bar manager
 ├── <YourProjectName>/    # Your newly migrated project
 ├── README.md             # Monorepo catalog of all Mac mini projects
 └── MONOREPO_GUIDE.md     # This developer guide
