@@ -166,7 +166,7 @@ struct AlbumEdgeGlowView: View {
             let beat = CGFloat(audioMonitor.beatLevel)
             let kick = CGFloat(audioMonitor.bandLevels.subBass)
             let snare = CGFloat(audioMonitor.bandLevels.mid)
-            let impulse = max(beat, (kick - 0.25) / 0.75, (snare - 0.25) / 0.75)
+            let impulse = max(beat, max(0.0, kick - 0.40) * 1.8, max(0.0, snare - 0.40) * 1.8)
 
             // Two distinct states: Strong Beat vs Weak Beat
             let isStrongBeat = impulse > 0.35
@@ -190,23 +190,23 @@ struct AlbumEdgeGlowView: View {
                     .allowsHitTesting(false)
                     .animation(.easeOut(duration: 0.08), value: isStrongBeat)
             } else {
-                // Main expanded display: fixed size halo, punchy brightness & opacity pop on strong beats
-                let scale: CGFloat = 1.08
-                let blurRadius: CGFloat = 16.0
-                let opacity: Double = isStrongBeat ? 0.94 : 0.36
-                let brightness: Double = isStrongBeat ? 0.28 : 0.0
+                // Main expanded display: fixed size halo, slight aesthetic modulation on beats
+                let scale: CGFloat = 1.15
+                let blurRadius: CGFloat = 5.0
+                let opacity: Double = isStrongBeat ? 0.85 : 0.65
+                let brightness: Double = isStrongBeat ? 0.12 : 0.0
 
                 Image(nsImage: musicManager.albumArt)
                     .resizable()
                     .aspectRatio(1, contentMode: .fit)
-                    .saturation(1.7)
+                    .saturation(1.6)
                     .brightness(brightness)
                     .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
                     .scaleEffect(scale)
                     .blur(radius: blurRadius)
                     .opacity(opacity)
                     .allowsHitTesting(false)
-                    .animation(.easeOut(duration: 0.08), value: isStrongBeat)
+                    .animation(.easeOut(duration: 0.10), value: isStrongBeat)
             }
         }
     }
