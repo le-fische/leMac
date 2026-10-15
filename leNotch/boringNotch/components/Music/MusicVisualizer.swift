@@ -216,81 +216,55 @@ struct AlbumEdgeGlowView: View {
     }
 }
 
-// MARK: - Spinning Vinyl Record Player View
+// MARK: - Audiophile Vinyl Turntable Player View
 
 struct VinylRecordView: View {
     @ObservedObject var musicManager = MusicManager.shared
     let isMinimized: Bool
+    var cornerRadius: CGFloat = 12
 
     var body: some View {
+        if isMinimized {
+            // Mini notch: compact spinning LP disc with silver rim
+            miniVinylView
+        } else {
+            // Main expanded notch: full turntable with chrome platter and tracking tonearm
+            expandedTurntableView
+        }
+    }
+
+    // MARK: - Mini Notch Vinyl
+    private var miniVinylView: some View {
         TimelineView(.animation(paused: !musicManager.isPlaying)) { timeline in
             let time = timeline.date.timeIntervalSinceReferenceDate
-            // ~33 RPM aesthetic spin (1 full revolution every ~3.6 seconds = 100 deg/s)
             let rotation = (time * 100.0).truncatingRemainder(dividingBy: 360)
 
             GeometryReader { geo in
                 let size = min(geo.size.width, geo.size.height)
                 ZStack {
-                    // Outer Black Vinyl Disc
+                    // Outer Black Rim
                     Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    Color(white: 0.15),
-                                    Color(white: 0.08),
-                                    Color(white: 0.04)
-                                ],
-                                center: .center,
-                                startRadius: size * 0.18,
-                                endRadius: size * 0.50
-                            )
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [Color(white: 0.18), Color(white: 0.08)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
                         )
-                        .shadow(color: .black.opacity(0.4), radius: isMinimized ? 1 : 4, x: 0, y: isMinimized ? 1 : 2)
 
-                    // Concentric Grooves
-                    if !isMinimized {
-                        Circle()
-                            .stroke(Color.white.opacity(0.06), lineWidth: 1)
-                            .frame(width: size * 0.88, height: size * 0.88)
-                        Circle()
-                            .stroke(Color.white.opacity(0.05), lineWidth: 1)
-                            .frame(width: size * 0.76, height: size * 0.76)
-                        Circle()
-                            .stroke(Color.white.opacity(0.06), lineWidth: 1)
-                            .frame(width: size * 0.64, height: size * 0.64)
-                        Circle()
-                            .stroke(Color.white.opacity(0.05), lineWidth: 1)
-                            .frame(width: size * 0.54, height: size * 0.54)
-                    } else {
-                        Circle()
-                            .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
-                            .frame(width: size * 0.82, height: size * 0.82)
-                        Circle()
-                            .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
-                            .frame(width: size * 0.65, height: size * 0.65)
-                    }
-
-                    // Vinyl sheen / light reflections (angular sheen)
+                    // Black Vinyl Disc
                     Circle()
-                        .fill(
-                            AngularGradient(
-                                gradient: Gradient(colors: [
-                                    Color.white.opacity(isMinimized ? 0.08 : 0.12),
-                                    Color.clear,
-                                    Color.white.opacity(isMinimized ? 0.06 : 0.10),
-                                    Color.clear,
-                                    Color.white.opacity(isMinimized ? 0.08 : 0.12),
-                                    Color.clear,
-                                    Color.white.opacity(isMinimized ? 0.06 : 0.10),
-                                    Color.clear
-                                ]),
-                                center: .center
-                            )
-                        )
-                        .blendMode(.plusLighter)
+                        .fill(Color(white: 0.06))
+                        .padding(1)
 
-                    // Center Album Label
-                    let labelSize = size * (isMinimized ? 0.48 : 0.42)
+                    // Subtle Groove
+                    Circle()
+                        .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
+                        .frame(width: size * 0.72, height: size * 0.72)
+
+                    // Rotating Center Album Label
+                    let labelSize = size * 0.50
                     ZStack {
                         Image(nsImage: musicManager.albumArt)
                             .resizable()
@@ -298,23 +272,339 @@ struct VinylRecordView: View {
                             .frame(width: labelSize, height: labelSize)
                             .clipShape(Circle())
                             .overlay(
-                                Circle()
-                                    .stroke(Color.white.opacity(0.20), lineWidth: isMinimized ? 0.5 : 1)
+                                Circle().stroke(Color.white.opacity(0.2), lineWidth: 0.5)
                             )
 
-                        // Center Spindle Hole
+                        // Center Spindle
                         Circle()
-                            .fill(Color.black)
-                            .frame(width: size * (isMinimized ? 0.12 : 0.08), height: size * (isMinimized ? 0.12 : 0.08))
+                            .fill(Color(white: 0.08))
+                            .frame(width: size * 0.12, height: size * 0.12)
                             .overlay(
-                                Circle()
-                                    .stroke(Color.gray.opacity(0.5), lineWidth: 0.5)
+                                Circle().stroke(Color(white: 0.20), lineWidth: 0.5)
                             )
                     }
+                    .rotationEffect(.degrees(rotation))
                 }
                 .frame(width: size, height: size)
-                .rotationEffect(.degrees(rotation))
             }
+        }
+    }
+
+    // MARK: - Expanded Turntable Player
+    private var expandedTurntableView: some View {
+        GeometryReader { geo in
+            let size = min(geo.size.width, geo.size.height)
+
+            ZStack {
+                // 1. Dark Brushed Plinth (Turntable Deck)
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(white: 0.14),
+                                Color(white: 0.09),
+                                Color(white: 0.06)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .strokeBorder(Color.white.opacity(0.08), lineWidth: 0.5)
+                    )
+
+                // Turntable Speed Controls & Labels (Bottom-Left)
+                VStack {
+                    Spacer()
+                    HStack(spacing: 4) {
+                        Circle().fill(Color.white.opacity(0.20)).frame(width: 3.5, height: 3.5)
+                        Text("33")
+                            .font(.system(size: 6.5, weight: .bold, design: .monospaced))
+                            .foregroundStyle(Color.white.opacity(0.30))
+                        Circle().fill(Color.white.opacity(0.12)).frame(width: 3.5, height: 3.5)
+                        Text("45")
+                            .font(.system(size: 6.5, weight: .bold, design: .monospaced))
+                            .foregroundStyle(Color.white.opacity(0.20))
+                        Spacer()
+                    }
+                    .padding(.leading, 8)
+                    .padding(.bottom, 7)
+                }
+
+                // 2. Matte Black Platter Rim (Full stealth black finish, no silver rim)
+                let platterSize = size * 0.84
+                let platterCenterX = size * 0.44
+                let platterCenterY = size * 0.50
+
+                ZStack {
+                    // Outer matte black platter edge
+                    Circle()
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    Color(white: 0.18),
+                                    Color(white: 0.08),
+                                    Color(white: 0.14)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 2.0
+                        )
+                        .frame(width: platterSize, height: platterSize)
+                        .shadow(color: .black.opacity(0.7), radius: 3, x: 0, y: 1.5)
+
+                    // Inner recessed slipmat
+                    Circle()
+                        .fill(Color(white: 0.04))
+                        .frame(width: platterSize - 4, height: platterSize - 4)
+                }
+                .position(x: platterCenterX, y: platterCenterY)
+
+                // 3. Spinning Vinyl LP Record
+                let vinylSize = size * 0.79
+                TimelineView(.animation(paused: !musicManager.isPlaying)) { timeline in
+                    let time = timeline.date.timeIntervalSinceReferenceDate
+                    let rotation = (time * 100.0).truncatingRemainder(dividingBy: 360)
+
+                    ZStack {
+                        // Deep Black Vinyl Disc
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color(white: 0.12),
+                                        Color(white: 0.06),
+                                        Color(white: 0.02)
+                                    ],
+                                    center: .center,
+                                    startRadius: vinylSize * 0.16,
+                                    endRadius: vinylSize * 0.50
+                                )
+                            )
+
+                        // Fine Sound Grooves
+                        Group {
+                            Circle().stroke(Color.white.opacity(0.04), lineWidth: 0.75).frame(width: vinylSize * 0.94)
+                            Circle().stroke(Color.white.opacity(0.06), lineWidth: 0.75).frame(width: vinylSize * 0.87)
+                            Circle().stroke(Color.white.opacity(0.05), lineWidth: 0.75).frame(width: vinylSize * 0.80)
+                            Circle().stroke(Color.white.opacity(0.06), lineWidth: 0.75).frame(width: vinylSize * 0.72)
+                            Circle().stroke(Color.white.opacity(0.04), lineWidth: 0.75).frame(width: vinylSize * 0.63)
+                            Circle().stroke(Color.white.opacity(0.06), lineWidth: 0.75).frame(width: vinylSize * 0.53)
+                            // Run-out groove band
+                            Circle().stroke(Color.white.opacity(0.08), lineWidth: 1.0).frame(width: vinylSize * 0.43)
+                        }
+
+                        // Anisotropic Specular Light Sheen (Two opposing light reflection fans)
+                        Circle()
+                            .fill(
+                                AngularGradient(
+                                    gradient: Gradient(stops: [
+                                        .init(color: .clear, location: 0.0),
+                                        .init(color: Color.white.opacity(0.18), location: 0.13),
+                                        .init(color: .clear, location: 0.26),
+                                        .init(color: .clear, location: 0.50),
+                                        .init(color: Color.white.opacity(0.18), location: 0.63),
+                                        .init(color: .clear, location: 0.76),
+                                        .init(color: .clear, location: 1.0)
+                                    ]),
+                                    center: .center
+                                )
+                            )
+                            .blendMode(.plusLighter)
+
+                        // Center Circular Album Artwork Label
+                        let labelSize = vinylSize * 0.38
+                        ZStack {
+                            Image(nsImage: musicManager.albumArt)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: labelSize, height: labelSize)
+                                .clipShape(Circle())
+                                .overlay(
+                                    Circle().stroke(Color.white.opacity(0.25), lineWidth: 0.75)
+                                )
+
+                            // Center Stealth Black Spindle
+                            Circle()
+                                .fill(
+                                    RadialGradient(
+                                        colors: [
+                                            Color(white: 0.22),
+                                            Color(white: 0.10),
+                                            Color(white: 0.04)
+                                        ],
+                                        center: .center,
+                                        startRadius: 0,
+                                        endRadius: vinylSize * 0.035
+                                    )
+                                )
+                                .frame(width: vinylSize * 0.065, height: vinylSize * 0.065)
+                                .overlay(
+                                    Circle().stroke(Color.white.opacity(0.14), lineWidth: 0.5)
+                                )
+                                .shadow(color: .black.opacity(0.6), radius: 1, x: 0, y: 0.5)
+                        }
+                    }
+                    .frame(width: vinylSize, height: vinylSize)
+                    .rotationEffect(.degrees(rotation))
+                }
+                .position(x: platterCenterX, y: platterCenterY)
+
+                // 4. Audiophile Tonearm (Pivoting with stylus tracking the grooves)
+                TonearmView(
+                    size: size,
+                    isPlaying: musicManager.isPlaying,
+                    progress: CGFloat(musicManager.songDuration > 0 ? musicManager.elapsedTime / musicManager.songDuration : 0)
+                )
+            }
+            .frame(width: size, height: size)
+        }
+    }
+}
+
+// MARK: - Audiophile Tonearm View
+
+struct TonearmView: View {
+    let size: CGFloat
+    let isPlaying: Bool
+    let progress: CGFloat
+
+    // Tonearm tracking angles:
+    // When playing: arm rotates inward over the record (22° at track start -> 30° near label)
+    // When paused: arm rests off the record on the armrest clasp (0°)
+    private var armAngle: Double {
+        if isPlaying {
+            return 22.0 + Double(max(0.0, min(1.0, progress))) * 8.0
+        } else {
+            return 0.0
+        }
+    }
+
+    var body: some View {
+        let pivotX = size * 0.88
+        let pivotY = size * 0.15
+        let armLength = size * 0.54
+
+        ZStack {
+            // Fixed Arm Rest Post (on the plinth)
+            Circle()
+                .fill(Color(white: 0.20))
+                .frame(width: size * 0.038, height: size * 0.038)
+                .position(x: pivotX, y: size * 0.44)
+
+            // Fixed Gimbal / Pivot Base Assembly
+            ZStack {
+                // Gimbal outer ring (matte dark charcoal)
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [Color(white: 0.24), Color(white: 0.10)],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: size * 0.075
+                        )
+                    )
+                    .frame(width: size * 0.14, height: size * 0.14)
+                    .overlay(
+                        Circle().stroke(Color.white.opacity(0.14), lineWidth: 0.75)
+                    )
+                    .shadow(color: .black.opacity(0.6), radius: 2.5, x: 1, y: 2)
+
+                // Gimbal center pivot cap (dark gunmetal)
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(white: 0.28), Color(white: 0.12)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: size * 0.045, height: size * 0.045)
+                    .overlay(
+                        Circle().stroke(Color.white.opacity(0.10), lineWidth: 0.5)
+                    )
+            }
+            .position(x: pivotX, y: pivotY)
+
+            // Swiveling Arm Wand & Headshell
+            ZStack {
+                // Counterweight cylinder (behind pivot, stealth black finish)
+                RoundedRectangle(cornerRadius: 1.5)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(white: 0.26), Color(white: 0.12), Color(white: 0.20)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: size * 0.055, height: size * 0.075)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 1.5)
+                            .stroke(Color.white.opacity(0.12), lineWidth: 0.5)
+                    )
+                    .offset(y: -size * 0.075)
+
+                // Tubular Arm Wand (dark matte black metallic wand)
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(white: 0.26), Color(white: 0.10), Color(white: 0.20)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: size * 0.024, height: armLength)
+                    .offset(y: armLength / 2)
+
+                // Headshell & Stylus Cartridge (at the wand tip)
+                ZStack(alignment: .top) {
+                    // Angular Cartridge Body (matte stealth black)
+                    RoundedRectangle(cornerRadius: 1.5)
+                        .fill(Color(white: 0.08))
+                        .frame(width: size * 0.052, height: size * 0.11)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 1.5)
+                                .stroke(Color.white.opacity(0.16), lineWidth: 0.5)
+                        )
+
+                    // Vintage Perforated Headshell Holes
+                    VStack(spacing: size * 0.012) {
+                        HStack(spacing: size * 0.010) {
+                            Circle().fill(Color.black).frame(width: size * 0.009, height: size * 0.009)
+                            Circle().fill(Color.black).frame(width: size * 0.009, height: size * 0.009)
+                        }
+                        HStack(spacing: size * 0.010) {
+                            Circle().fill(Color.black).frame(width: size * 0.009, height: size * 0.009)
+                            Circle().fill(Color.black).frame(width: size * 0.009, height: size * 0.009)
+                        }
+                    }
+                    .padding(.top, size * 0.026)
+
+                    // Dark Stylus Needle Tip
+                    Rectangle()
+                        .fill(Color(white: 0.28))
+                        .frame(width: size * 0.020, height: size * 0.018)
+                        .offset(y: size * 0.10)
+
+                    // Finger Lift Hook (anodized dark)
+                    Path { path in
+                        path.move(to: CGPoint(x: size * 0.052, y: size * 0.075))
+                        path.addQuadCurve(
+                            to: CGPoint(x: size * 0.082, y: size * 0.095),
+                            control: CGPoint(x: size * 0.078, y: size * 0.075)
+                        )
+                    }
+                    .stroke(Color(white: 0.30), lineWidth: 1.0)
+                }
+                .rotationEffect(.degrees(-18))
+                .offset(y: armLength + size * 0.035)
+            }
+            .position(x: pivotX, y: pivotY)
+            .rotationEffect(.degrees(armAngle), anchor: UnitPoint(x: pivotX / size, y: pivotY / size))
+            .animation(.spring(response: 0.65, dampingFraction: 0.78), value: isPlaying)
+            .shadow(color: .black.opacity(0.4), radius: 2.5, x: 1.5, y: 2.5)
         }
     }
 }
