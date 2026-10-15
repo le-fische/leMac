@@ -152,11 +152,11 @@ public class MenuController: NSObject, NSMenuDelegate {
         menu.addItem(launchAtLoginItem)
         
         // 10. About & Quit
-        let aboutItem = NSMenuItem(title: "About leCPUGPU…", action: #selector(openAbout), keyEquivalent: "")
+        let aboutItem = NSMenuItem(title: "About leCG…", action: #selector(openAbout), keyEquivalent: "")
         aboutItem.target = self
         menu.addItem(aboutItem)
         
-        let quitItem = NSMenuItem(title: "Quit leCPUGPU", action: #selector(quitApp), keyEquivalent: "q")
+        let quitItem = NSMenuItem(title: "Quit leCG", action: #selector(quitApp), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
     }
@@ -230,8 +230,8 @@ public class MenuController: NSObject, NSMenuDelegate {
             (2.0, "2.0 seconds"),
             (5.0, "5.0 seconds")
         ]
-        let currentInterval = UserDefaults.standard.double(forKey: "leCPUGPU.RefreshInterval") > 0
-            ? UserDefaults.standard.double(forKey: "leCPUGPU.RefreshInterval")
+        let currentInterval = UserDefaults.standard.double(forKey: "leCG.RefreshInterval") > 0
+            ? UserDefaults.standard.double(forKey: "leCG.RefreshInterval")
             : 1.0
         
         for (sec, title) in intervals {
@@ -375,7 +375,7 @@ public class MenuController: NSObject, NSMenuDelegate {
     
     @objc private func intervalSelected(_ sender: NSMenuItem) {
         guard let sec = sender.representedObject as? Double else { return }
-        UserDefaults.standard.set(sec, forKey: "leCPUGPU.RefreshInterval")
+        UserDefaults.standard.set(sec, forKey: "leCG.RefreshInterval")
         for (s, item) in intervalMenuItems {
             item.state = (abs(s - sec) < 0.01) ? .on : .off
         }
@@ -407,7 +407,7 @@ public class MenuController: NSObject, NSMenuDelegate {
     
     @objc private func openAbout() {
         let alert = NSAlert()
-        alert.messageText = "leCPUGPU"
+        alert.messageText = "leCG"
         alert.informativeText = """
         A lightweight native macOS menu bar monitor for CPU, GPU & Thermals with live graphics.
         

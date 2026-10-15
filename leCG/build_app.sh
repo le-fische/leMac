@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-APP_NAME="leCPUGPU"
+APP_NAME="leCG"
 BUNDLE_DIR="${APP_NAME}.app"
 CONTENTS_DIR="${BUNDLE_DIR}/Contents"
 MACOS_DIR="${CONTENTS_DIR}/MacOS"

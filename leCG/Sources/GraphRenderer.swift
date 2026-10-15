@@ -45,21 +45,21 @@ public class GraphRenderer {
     
     public var currentStyle: GraphStyle {
         get {
-            let val = UserDefaults.standard.integer(forKey: "leCPUGPU.GraphStyle")
+            let val = UserDefaults.standard.integer(forKey: "leCG.GraphStyle")
             return GraphStyle(rawValue: val) ?? .stackedSparklinesWithText
         }
         set {
-            UserDefaults.standard.set(newValue.rawValue, forKey: "leCPUGPU.GraphStyle")
+            UserDefaults.standard.set(newValue.rawValue, forKey: "leCG.GraphStyle")
         }
     }
     
     public var currentTheme: ColorTheme {
         get {
-            let val = UserDefaults.standard.integer(forKey: "leCPUGPU.ColorTheme")
+            let val = UserDefaults.standard.integer(forKey: "leCG.ColorTheme")
             return ColorTheme(rawValue: val) ?? .vibrant
         }
         set {
-            UserDefaults.standard.set(newValue.rawValue, forKey: "leCPUGPU.ColorTheme")
+            UserDefaults.standard.set(newValue.rawValue, forKey: "leCG.ColorTheme")
         }
     }
     

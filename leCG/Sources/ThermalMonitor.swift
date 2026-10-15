@@ -45,21 +45,21 @@ public class ThermalMonitor {
     
     public var currentUnit: TemperatureUnit {
         get {
-            let val = UserDefaults.standard.integer(forKey: "leCPUGPU.TempUnit")
+            let val = UserDefaults.standard.integer(forKey: "leCG.TempUnit")
             return TemperatureUnit(rawValue: val) ?? .celsius
         }
         set {
-            UserDefaults.standard.set(newValue.rawValue, forKey: "leCPUGPU.TempUnit")
+            UserDefaults.standard.set(newValue.rawValue, forKey: "leCG.TempUnit")
         }
     }
     
     public var metricMode: MetricDisplayMode {
         get {
-            let val = UserDefaults.standard.integer(forKey: "leCPUGPU.MetricMode")
+            let val = UserDefaults.standard.integer(forKey: "leCG.MetricMode")
             return MetricDisplayMode(rawValue: val) ?? .percentages
         }
         set {
-            UserDefaults.standard.set(newValue.rawValue, forKey: "leCPUGPU.MetricMode")
+            UserDefaults.standard.set(newValue.rawValue, forKey: "leCG.MetricMode")
         }
     }
     

@@ -157,30 +157,38 @@ struct AudioSpectrumView: NSViewRepresentable {
 struct AlbumEdgeGlowView: View {
     @ObservedObject var audioMonitor = SystemAudioMonitor.shared
     @ObservedObject var musicManager = MusicManager.shared
+    @ObservedObject var volumeManager = VolumeManager.shared
     let cornerRadius: CGFloat
     let isMinimized: Bool
 
     var body: some View {
         if Defaults[.enableExpandedVisualizerGlow] && musicManager.isPlaying {
-            let beat = CGFloat(audioMonitor.beatLevel)
-            let bass = CGFloat(audioMonitor.bandLevels.bass)
-            let sub = CGFloat(audioMonitor.bandLevels.subBass)
-            let pulseEnergy = max(beat, (bass * 0.6 + sub * 0.4))
+            // Transient percussion & beat detection (kicks, 808s, snares, claps)
+            let kick = CGFloat(audioMonitor.bandLevels.subBass * 0.70 + audioMonitor.bandLevels.bass * 0.50)
+            let snare = CGFloat(audioMonitor.bandLevels.mid * 0.70 + audioMonitor.bandLevels.highMid * 0.50)
+            let beatPulse = CGFloat(audioMonitor.beatLevel)
+            let pulseEnergy = max(beatPulse, kick, snare)
 
-            // Calibrated sizes:
-            // - Mini: tight border glow that stays safely inside notch boundaries without reaching hardstops
-            // - Main expanded (Step 1 Increment): slightly bigger and brighter
+            // Volume-scaled aura:
+            // Base volume <= 50% (0.50): volumeProgress = 0.0
+            // Above 50% up to 100%: volumeProgress smoothly scales from 0.0 to 1.0
+            let vol = CGFloat(volumeManager.isMuted ? 0.0 : volumeManager.rawVolume)
+            let volumeProgress = max(0.0, min(1.0, (vol - 0.50) / 0.50))
+
+            // Calibrated dynamic scales:
+            // - Mini: tiny bit bigger, stays safely within notch boundaries up to render limit
+            // - Main expanded: bouncy beat fluctuations on drums/snares (+0.15), spills into right side above 50% vol (+0.12)
             let scale: CGFloat = isMinimized
-                ? (1.08 + pulseEnergy * 0.05)
-                : (1.08 + pulseEnergy * 0.11)
+                ? (1.10 + pulseEnergy * 0.06 + volumeProgress * 0.05)
+                : (1.07 + pulseEnergy * 0.15 + volumeProgress * 0.12)
 
             let blurRadius: CGFloat = isMinimized
-                ? (2.2 + pulseEnergy * 1.2)
-                : (18.0 + pulseEnergy * 12.0)
+                ? (2.4 + pulseEnergy * 1.0 + volumeProgress * 1.2)
+                : (16.0 + pulseEnergy * 10.0 + volumeProgress * 8.0)
 
             let opacity: Double = isMinimized
-                ? Double(0.65 + pulseEnergy * 0.30)
-                : Double(0.55 + pulseEnergy * 0.35)
+                ? Double(0.68 + pulseEnergy * 0.26)
+                : Double(0.50 + pulseEnergy * 0.35 + volumeProgress * 0.10)
 
             Image(nsImage: musicManager.albumArt)
                 .resizable()
@@ -192,7 +200,7 @@ struct AlbumEdgeGlowView: View {
                 .blur(radius: blurRadius)
                 .opacity(opacity)
                 .allowsHitTesting(false)
-                .animation(.easeOut(duration: 0.08), value: pulseEnergy)
+                .animation(.easeOut(duration: 0.07), value: pulseEnergy)
         }
     }
 }

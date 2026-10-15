@@ -352,6 +352,19 @@ final class SystemAudioMonitor: ObservableObject {
 
             let amp = max(0.40, sqrtf(vol > 0 ? vol : 0.65))
             let time = Float(CACurrentMediaTime())
+
+            // Musical tempo tracking (~124 BPM, ~0.484s per beat)
+            let beatTime = time * 2.066
+            let beatIndex = Int(floor(beatTime))
+            let beatPhase = beatTime - floor(beatTime)
+            let isSnareBeat = (beatIndex % 2 == 1) // Beats 2 & 4 = Snare / Clap
+
+            // Snappy exponential transient decay (sharp attack, fast decay)
+            let transientDecay = expf(-beatPhase * 6.5)
+            let kickTransient = (!isSnareBeat ? 1.0 : 0.25) * transientDecay
+            let snareTransient = (isSnareBeat ? 1.0 : 0.20) * transientDecay
+            let overallBeatHit = max(kickTransient, snareTransient) * amp
+
             let freqs: [Float] = [2.8, 3.4, 4.1, 5.0, 6.2]
             let weights: [Float] = [1.0, 0.90, 0.80, 0.70, 0.60]
 
@@ -361,19 +374,27 @@ final class SystemAudioMonitor: ObservableObject {
                 let wave1 = sinf(time * freqs[i] + simPhases[i])
                 let wave2 = sinf(time * (freqs[i] * 0.5) + simPhases[i] * 1.3)
                 let organic = (wave1 * 0.35 + wave2 * 0.35 + 0.30)
-                currentBands[i] = max(0.14, min(1.0, organic * amp * weights[i]))
+
+                // Add percussive transient impact: kicks in sub/bass, snares in mids
+                let transientBoost: Float
+                if i == 0 || i == 1 {
+                    transientBoost = kickTransient * 0.55
+                } else if i == 2 || i == 3 {
+                    transientBoost = snareTransient * 0.50
+                } else {
+                    transientBoost = snareTransient * 0.30
+                }
+
+                currentBands[i] = max(0.14, min(1.0, (organic * 0.65 + transientBoost) * amp * weights[i]))
             }
 
-            // Organic rhythmic beat accent pulsation (~120 BPM feel)
-            let beatOsc = powf(max(0, sinf(time * 3.77)), 4.0) // sharp pulse
-            let pulse = beatOsc * amp
-
-            smoothedSubBass += 0.35 * (currentBands[0] - smoothedSubBass)
-            smoothedBass += 0.35 * (currentBands[1] - smoothedBass)
-            smoothedMid += 0.35 * (currentBands[2] - smoothedMid)
-            smoothedHighMid += 0.35 * (currentBands[3] - smoothedHighMid)
-            smoothedTreble += 0.35 * (currentBands[4] - smoothedTreble)
-            smoothedBeat += 0.45 * (pulse - smoothedBeat)
+            // Snappy attack, smooth decay
+            smoothedSubBass += (currentBands[0] > smoothedSubBass ? 0.65 : 0.25) * (currentBands[0] - smoothedSubBass)
+            smoothedBass += (currentBands[1] > smoothedBass ? 0.65 : 0.25) * (currentBands[1] - smoothedBass)
+            smoothedMid += (currentBands[2] > smoothedMid ? 0.65 : 0.25) * (currentBands[2] - smoothedMid)
+            smoothedHighMid += (currentBands[3] > smoothedHighMid ? 0.65 : 0.25) * (currentBands[3] - smoothedHighMid)
+            smoothedTreble += (currentBands[4] > smoothedTreble ? 0.65 : 0.25) * (currentBands[4] - smoothedTreble)
+            smoothedBeat += (overallBeatHit > smoothedBeat ? 0.85 : 0.20) * (overallBeatHit - smoothedBeat)
 
             bandLevels = AudioBandLevels(
                 subBass: max(0.14, min(1.0, smoothedSubBass)),

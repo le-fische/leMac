@@ -39,7 +39,7 @@ public class AppDelegate: NSObject, NSApplicationDelegate, MenuControllerDelegat
         stopTimer()
         guard !isSleeping else { return }
         
-        var interval = UserDefaults.standard.double(forKey: "leCPUGPU.RefreshInterval")
+        var interval = UserDefaults.standard.double(forKey: "leCG.RefreshInterval")
         if interval <= 0.05 {
             interval = 1.0
         }

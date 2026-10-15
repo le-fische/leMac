@@ -1,8 +1,8 @@
-# leCPUGPU 
+# leCG 
 
 A lightweight, native macOS menu bar app for monitoring **CPU**, **GPU**, and **Hardware Thermals** in real time with live graphics, built specifically for Apple Silicon (M1/M2/M3/M4) and macOS Sonoma / Sequoia.
 
-![leCPUGPU](https://img.shields.io/badge/macOS-14.0%2B-blue)
+![leCG](https://img.shields.io/badge/macOS-14.0%2B-blue)
 ![Architecture](https://img.shields.io/badge/Arch-Apple%20Silicon%20(arm64)-orange)
 ![Binary Size](https://img.shields.io/badge/Binary%20Size-~240KB-success)
 
@@ -52,7 +52,7 @@ All styles are unified into **one single icon capsule** with CPU on top and GPU 
 ### 1. Build and Run Immediately
 
 ```bash
-cd leCPUGPU
+cd leCG
 make run
 ```
 
@@ -60,7 +60,7 @@ Or manually:
 
 ```bash
 ./build_app.sh
-open leCPUGPU.app
+open leCG.app
 ```
 
 The app will appear instantly in your top-right menu bar. Click the icon to open the detailed monitor panel.
@@ -71,14 +71,14 @@ The app will appear instantly in your top-right menu bar. Click the icon to open
 make install
 ```
 
-This copies `leCPUGPU.app` into `/Applications` so you can launch it anytime from Spotlight, Launchpad, or Finder.
+This copies `leCG.app` into `/Applications` so you can launch it anytime from Spotlight, Launchpad, or Finder.
 
 ---
 
 ## Architecture & Code Structure
 
 ```
-leCPUGPU/
+leCG/
 ├── Sources/
 │   ├── HardwareInfo.swift    # Queries chip model (e.g. M4 Pro), P/E core counts, GPU cores via sysctl & IORegistry
 │   ├── SystemMonitor.swift   # Polls Mach kernel CPU stats, per-core load, IOKit GPU statistics, and RAM
@@ -88,7 +88,7 @@ leCPUGPU/
 │   ├── AppDelegate.swift     # Manages NSStatusItem, sleep/wake power conservation, and update loop
 │   └── main.swift            # Configures NSApplication in accessory mode (no Dock icon)
 ├── Info.plist                # Bundle configuration with LSUIElement = true
-├── build_app.sh              # Script compiling Swift code into leCPUGPU.app bundle
+├── build_app.sh              # Script compiling Swift code into leCG.app bundle
 ├── Makefile                  # make, make run, make install, make clean
 └── AppIcon.icns              # Retina macOS squircle app icon
 ```

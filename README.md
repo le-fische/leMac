@@ -12,7 +12,7 @@ Each project in this repository is designed to be self-contained, high-performan
 | :--- | :--- | :--- | :--- |
 | [**leNotch**](leNotch/) | Dynamic Island & Notch utility with 60 FPS audio visualizer glow, smart OCR shelf, HUD replacements, and live weather. | Swift, SwiftUI, AppKit, Metal, Vision | Active |
 | [**leMinibar**](leMinibar/) | 1:1 Ice-inspired zero-permission menu bar minimizer with single hairline dot control. | Swift, AppKit, Cocoa | Active |
-| [**leCPUGPU**](leCPUGPU/) | Lightweight real-time CPU, GPU, RAM, and thermal monitor menu bar application for Apple Silicon. | Swift, IOKit, Metal, AppKit | Active |
+| [**leCG**](leCG/) | Lightweight real-time CPU, GPU, RAM, and thermal monitor menu bar application for Apple Silicon. | Swift, IOKit, Metal, AppKit | Active |
 | [**leFan**](leFan/) | Modern unlocked fan controller with tachometers, dynamic sensor curves, and presets. | Swift, SwiftUI, AppKit, IOKit | Active |
 
 ---
@@ -46,7 +46,7 @@ A minimalist, zero-dependency menu bar minimizer and organizer for macOS.
 
 ---
 
-## ⚡️ [leCPUGPU](leCPUGPU/)
+## ⚡️ [leCG](leCG/)
 
 A lightweight, native menu bar monitor for CPU, GPU, and Hardware Thermals with live stacked graphics.
 
@@ -115,9 +115,9 @@ chmod +x build.sh
 ./build.sh
 ```
 
-### Build leCPUGPU
+### Build leCG
 ```bash
-cd leCPUGPU
+cd leCG
 make build
 # or run directly
 make run
