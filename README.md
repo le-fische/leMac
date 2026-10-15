@@ -1,78 +1,91 @@
-# leNotch 🪽
+# leMac 
 
-A sleek, modern, supercharged macOS Notch & Dynamic Island utility app written in Swift and SwiftUI.
+A curated monorepo of lightweight native macOS utilities, tools, and mini projects designed for MacBook and Apple Silicon.
 
-Turn your MacBook's notch into an interactive Dynamic Island featuring a 60 FPS hardware audio visualizer, Vision-powered shelf, streamlined calendar, system HUD replacements, Bluetooth activity tracking, and live weather.
-
----
-
-## ✨ Features
-
-### 🎵 60 FPS Audio Visualizer & Ambient Glow
-- **Silky Smooth Visualizer**: Calibrated 60 FPS audio spectrum visualizer running off main runloop common mode for zero-jitter rendering.
-- **Color-Reactive Ambient Glow**: Color-matched audio glow pulsing behind album art in the expanded notch view.
-- **Configurable in Settings**: Dedicated toggle under **Settings → Media** to easily disable ambient pulsing if preferred.
-
-### 🗄️ Supercharged Shelf
-- **Vision OCR Text Extraction**: Right-click any image or screenshot in the shelf and select **Extract Text (OCR)** to instantly copy recognized text to the clipboard.
-- **1-Click Format Conversions**: Instantly convert images to PNG, JPEG, TIFF, or compile them into a PDF.
-- **AirDrop Sharing**: 1-click beaming of shelf files to nearby Apple devices via native AirDrop.
-- **Clipboard History**: Tracks recent copied clippings with direct 1-click pinning to the shelf.
-
-### 📅 Streamlined, Breathable Calendar
-- **Compact Date Navigation**: Replaces cramped wheel pickers with an intuitive single-line date bar (`EEE, MMM d`) with `< Today >` steppers.
-- **Readable Event Cards**: Lightweight scrollable cards with calendar color indicator pills, clear time badges, and reminder completion toggles.
-
-### 🎛️ System HUD Replacements
-- **Native HUD Replacement**: Clean, non-intrusive notch HUDs for **Volume**, **Display Brightness**, and **Keyboard Backlight**.
-- **Interactive Control**: Drag sliders directly inside the notch HUD to adjust levels.
-
-### 🎧 Bluetooth Live Activity
-- **Real-Time Peripheral Tracking**: Automatically detects when Bluetooth peripherals (AirPods, headphones, Magic Mouse, Magic Keyboard, trackpad) connect or disconnect.
-- **Battery Percentage Pills**: Dynamic Island notification displays device icon, status ("Connected" / "Disconnected"), and real-time battery percentage badge.
-
-### ⛅ Weather Integration
-- **Live Glance in Header**: Displays current temperature and WMO weather condition icons (`☀️ 72°F` / `⛅ 18°C`) in the notch header using Open-Meteo.
-- **Zero API Key Needed**: Automatically resolves city and locale unit preference (°C vs. °F) without configuration or paid accounts.
-- **Quick Launch**: Click to open macOS Weather.
-
-### ⏱️ Focus & Timer Live Activity
-- **Pomodoro & Focus Timer**: Built-in 25-minute Pomodoro timer and countdown Live Activity pill in the notch.
-- **Interactive Chime**: Pause, resume, and receive audio chime notifications upon completion.
-
-### 🚀 Under-the-Hood Performance
-- **Zero UI Hitching**: Completely decoupled high-frequency audio polling from root SwiftUI views, eliminating 30–60 body re-renders per second.
-- **Hardware-Accelerated Color Extraction**: Sub-millisecond dominant color extraction via `CIFilter.areaAverage` with zero CPU memory spikes.
-- **Memory Leak Free**: Fixed Combine retain cycles, notification observer leaks, and Quartz tap timeouts.
+Each project in this repository is designed to be self-contained, high-performance, and deeply integrated with macOS system features (Notch, Menu Bar, Vision OCR, CoreAudio, IOBluetooth, and AppKit/SwiftUI).
 
 ---
 
-## 🛠️ Requirements & Building
+## 📂 Projects Catalog
 
-- **macOS**: 14.0 Sonoma or later
-- **Architecture**: Apple Silicon (M1/M2/M3/M4) & Intel
-- **Xcode**: Xcode 15 or later
+| Project | Description | Tech Stack | Status |
+| :--- | :--- | :--- | :--- |
+| [**leNotch**](leNotch/) | Dynamic Island & Notch utility with 60 FPS audio visualizer glow, smart OCR shelf, HUD replacements, Bluetooth telemetry, and live weather. | Swift, SwiftUI, AppKit, Metal, Vision | Active |
+| [**MiniBar**](MiniBar/) | Minimalist collapsible menu bar organizer to declutter MacBook status icons with zero dependencies. | Swift, AppKit, Cocoa | Active |
 
-### Building from Source
+---
 
+## 🪽 [leNotch](leNotch/)
+
+An interactive Dynamic Island and MacBook Notch enhancement utility.
+
+- **60 FPS Hardware Audio Visualizer**: Main-runloop calibrated audio spectrum visualizer with decoupled render tree for stutter-free 60 FPS performance.
+- **Color-Reactive Ambient Glow**: Ambient background glow pulsing behind album art in expanded mode, with user toggle in Settings.
+- **Supercharged Shelf**: Drag-and-drop workspace with Apple Vision OCR text extraction, 1-click format conversion (PNG/JPEG/TIFF/PDF), AirDrop sharing, and clipboard history.
+- **Breathable Calendar**: Streamlined single-line `< Today >` date navigation with clean, non-cramped event cards.
+- **System HUD Replacements**: Modern notch popups replacing standard macOS Volume, Display Brightness, and Keyboard Backlight HUDs.
+- **Bluetooth Live Activity**: Real-time peripheral connect/disconnect pills with live battery percentages for AirPods, keyboards, mice, and headphones.
+- **Live Weather**: Instant temperature and condition glance in the notch header powered by Open-Meteo.
+- **Focus Timer**: Integrated Pomodoro timer countdown Live Activity.
+
+> *Credits: Inspired by and built upon [boringNotch](https://github.com/TheBoredTeam/boring.notch) by TheBoredTeam.*
+
+---
+
+## 🍸 [MiniBar](MiniBar/)
+
+A minimalist, zero-dependency menu bar manager for macOS.
+
+- **Collapsible Status Items**: Click to collapse or expand secondary status bar icons.
+- **Auto-Collapse**: Automatically hides icons after an idle period.
+- **Zero Overhead**: Pure AppKit with minimal memory (< 10 MB RAM) and zero background CPU usage.
+- **Instant Compilation**: Single command build script (`./build.sh`).
+
+---
+
+## 🚀 How to Add New Mini Projects
+
+Adding a new MacBook mini project to this monorepo is straightforward:
+
+1. **Create a project folder** in the root:
+   ```bash
+   mkdir MyMacProject
+   ```
+
+2. **Add your source code & build configuration**:
+   - For Xcode projects: save `MyMacProject.xcodeproj` inside `MyMacProject/`
+   - For Swift script / CLI / single-file apps: include a `build.sh` or `Package.swift`
+
+3. **Add a `README.md`** inside `MyMacProject/` describing its purpose, features, and build steps.
+
+4. **Add an entry to the Projects Catalog** in this root `README.md`.
+
+5. **Commit and push**:
+   ```bash
+   git add MyMacProject README.md
+   git commit -m "Add MyMacProject"
+   git push origin main
+   ```
+
+---
+
+## 🛠️ Building Projects
+
+### Build leNotch
 ```bash
-git clone https://github.com/le-fische/leNotch.git
 cd leNotch
-xcodebuild -scheme boringNotch -configuration Debug build CODE_SIGNING_ALLOWED=NO
+xcodebuild -scheme boringNotch -configuration Release build CODE_SIGNING_ALLOWED=NO
 ```
 
-Or open `boringNotch.xcodeproj` in Xcode and hit **Run** (`⌘R`).
-
----
-
-## 🙏 Acknowledgments & Credits
-
-**leNotch** is inspired by and built upon the open-source project [boringNotch](https://github.com/TheBoredTeam/boring.notch) by **TheBoredTeam**. 
-
-I express my sincere gratitude and credit to the original authors, design contributors, and developers of `boringNotch` for the foundational concepts, architecture, and base files that made this project possible.
+### Build MiniBar
+```bash
+cd MiniBar
+chmod +x build.sh
+./build.sh
+```
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **GNU General Public License v3.0 (GPLv3)** — see the [LICENSE](LICENSE) file for details.
+This repository contains open-source software. Individual projects may carry specific licenses based on their origins (e.g. `leNotch` is licensed under GNU GPLv3; see [LICENSE](LICENSE)).
