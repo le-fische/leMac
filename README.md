@@ -45,6 +45,8 @@ A minimalist, zero-dependency menu bar manager for macOS.
 
 ## 🚀 How to Add New Mini Projects
 
+> For full migration steps from outside directories, see [**MONOREPO_GUIDE.md**](MONOREPO_GUIDE.md).
+
 Adding a new MacBook mini project to this monorepo is straightforward:
 
 1. **Create a project folder** in the root:
