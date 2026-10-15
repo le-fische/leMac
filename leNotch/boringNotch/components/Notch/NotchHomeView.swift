@@ -36,7 +36,7 @@ struct AlbumArtView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
+        ZStack(alignment: .center) {
             if Defaults[.enableExpandedVisualizerGlow] {
                 AlbumEdgeGlowView(cornerRadius: cornerRadius, isMinimized: false)
             } else if Defaults[.lightingEffect] {

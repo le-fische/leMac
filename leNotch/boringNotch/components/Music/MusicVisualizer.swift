@@ -157,58 +157,44 @@ struct AudioSpectrumView: NSViewRepresentable {
 struct AlbumEdgeGlowView: View {
     @ObservedObject var audioMonitor = SystemAudioMonitor.shared
     @ObservedObject var musicManager = MusicManager.shared
-    @ObservedObject var volumeManager = VolumeManager.shared
     let cornerRadius: CGFloat
     let isMinimized: Bool
 
     var body: some View {
         if Defaults[.enableExpandedVisualizerGlow] && musicManager.isPlaying {
-            // Volume-scaled aura halo:
-            // Base volume <= 50% (0.50): volumeProgress = 0.0
-            // Above 50% up to 100%: volumeProgress smoothly scales from 0.0 to 1.0
-            let vol = CGFloat(volumeManager.isMuted ? 0.0 : volumeManager.rawVolume)
-            let volumeProgress = max(0.0, min(1.0, (vol - 0.50) / 0.50))
+            // Beat transient detection: kicks, 808s, snares, claps
+            let beat = CGFloat(audioMonitor.beatLevel)
+            let kick = CGFloat(audioMonitor.bandLevels.subBass)
+            let snare = CGFloat(audioMonitor.bandLevels.mid)
+            let impulse = max(beat, (kick - 0.25) / 0.75, (snare - 0.25) / 0.75)
+
+            // Two distinct states: Strong Beat vs Weak Beat
+            let isStrongBeat = impulse > 0.35
 
             if isMinimized {
-                // Mini notch display: preserved exactly as approved ("small display is good enough")
-                let kick = CGFloat(audioMonitor.bandLevels.subBass * 0.70 + audioMonitor.bandLevels.bass * 0.50)
-                let snare = CGFloat(audioMonitor.bandLevels.mid * 0.70 + audioMonitor.bandLevels.highMid * 0.50)
-                let beatPulse = CGFloat(audioMonitor.beatLevel)
-                let pulseEnergy = max(beatPulse, kick, snare)
-
-                let scale: CGFloat = 1.10 + pulseEnergy * 0.06 + volumeProgress * 0.05
-                let blurRadius: CGFloat = 2.4 + pulseEnergy * 1.0 + volumeProgress * 1.2
-                let opacity: Double = Double(0.68 + pulseEnergy * 0.26)
+                // Mini notch display: fixed size within notch margins, toggles brightness & opacity on beats
+                let scale: CGFloat = 1.12
+                let blurRadius: CGFloat = 2.8
+                let opacity: Double = isStrongBeat ? 0.95 : 0.65
+                let brightness: Double = isStrongBeat ? 0.16 : 0.0
 
                 Image(nsImage: musicManager.albumArt)
                     .resizable()
                     .aspectRatio(1, contentMode: .fit)
                     .saturation(1.6)
-                    .brightness(0.0)
+                    .brightness(brightness)
                     .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
                     .scaleEffect(scale)
                     .blur(radius: blurRadius)
                     .opacity(opacity)
                     .allowsHitTesting(false)
-                    .animation(.easeOut(duration: 0.07), value: pulseEnergy)
+                    .animation(.easeOut(duration: 0.08), value: isStrongBeat)
             } else {
-                // Main expanded display: punchy, unmistakable POP on beat transients (kicks, snares, 808s)
-                let beat = CGFloat(audioMonitor.beatLevel)
-                let kickAccent = max(0.0, CGFloat(audioMonitor.bandLevels.subBass) - 0.25) / 0.75
-                let snareAccent = max(0.0, CGFloat(audioMonitor.bandLevels.mid) - 0.25) / 0.75
-                let rawPop = max(beat, kickAccent * 0.90, snareAccent * 0.85)
-                let pop = pow(max(0.0, min(1.0, rawPop)), 1.6)
-
-                let baseScale: CGFloat = 1.04 + volumeProgress * 0.10
-                let scale: CGFloat = baseScale + pop * 0.24
-
-                let baseBlur: CGFloat = 10.0 + volumeProgress * 8.0
-                let blurRadius: CGFloat = baseBlur + pop * 18.0
-
-                let baseOpacity: Double = 0.38 + Double(volumeProgress) * 0.08
-                let opacity: Double = baseOpacity + Double(pop) * 0.54
-
-                let brightness: Double = 0.04 + Double(pop) * 0.14
+                // Main expanded display: fixed size halo, punchy brightness & opacity pop on strong beats
+                let scale: CGFloat = 1.08
+                let blurRadius: CGFloat = 16.0
+                let opacity: Double = isStrongBeat ? 0.94 : 0.36
+                let brightness: Double = isStrongBeat ? 0.28 : 0.0
 
                 Image(nsImage: musicManager.albumArt)
                     .resizable()
@@ -220,7 +206,7 @@ struct AlbumEdgeGlowView: View {
                     .blur(radius: blurRadius)
                     .opacity(opacity)
                     .allowsHitTesting(false)
-                    .animation(.interactiveSpring(response: 0.12, dampingFraction: 0.60, blendDuration: 0), value: pop)
+                    .animation(.easeOut(duration: 0.08), value: isStrongBeat)
             }
         }
     }
