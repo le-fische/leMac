@@ -172,41 +172,45 @@ struct AlbumEdgeGlowView: View {
             let isStrongBeat = impulse > 0.35
 
             if isMinimized {
-                // Mini notch display: fixed size within notch margins, toggles brightness & opacity on beats
+                // Mini notch display: pure opacity pulse (no brightness boost so it never overwhelms album art)
+                let beat = CGFloat(audioMonitor.beatLevel)
+                let kick = CGFloat(audioMonitor.bandLevels.subBass)
+                let snare = CGFloat(audioMonitor.bandLevels.mid)
+                let impulse = max(beat, max(0.0, kick - 0.40) * 1.8, max(0.0, snare - 0.40) * 1.8)
+                let isStrongBeat = impulse > 0.35
+
                 let scale: CGFloat = 1.12
                 let blurRadius: CGFloat = 2.8
-                let opacity: Double = isStrongBeat ? 0.95 : 0.65
-                let brightness: Double = isStrongBeat ? 0.16 : 0.0
+                // Subtle opacity modulation without touching brightness
+                let opacity: Double = isStrongBeat ? 0.82 : 0.52
 
                 Image(nsImage: musicManager.albumArt)
                     .resizable()
                     .aspectRatio(1, contentMode: .fit)
-                    .saturation(1.6)
-                    .brightness(brightness)
-                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-                    .scaleEffect(scale)
-                    .blur(radius: blurRadius)
-                    .opacity(opacity)
-                    .allowsHitTesting(false)
-                    .animation(.easeOut(duration: 0.08), value: isStrongBeat)
-            } else {
-                // Main expanded display: fixed size halo, slight aesthetic modulation on beats
-                let scale: CGFloat = 1.15
-                let blurRadius: CGFloat = 5.0
-                let opacity: Double = isStrongBeat ? 0.85 : 0.65
-                let brightness: Double = isStrongBeat ? 0.12 : 0.0
-
-                Image(nsImage: musicManager.albumArt)
-                    .resizable()
-                    .aspectRatio(1, contentMode: .fit)
-                    .saturation(1.6)
-                    .brightness(brightness)
+                    .saturation(1.5)
+                    .brightness(0.0)
                     .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
                     .scaleEffect(scale)
                     .blur(radius: blurRadius)
                     .opacity(opacity)
                     .allowsHitTesting(false)
                     .animation(.easeOut(duration: 0.10), value: isStrongBeat)
+            } else {
+                // Main expanded display: permanent, beautiful ambient album halo
+                let scale: CGFloat = 1.22
+                let blurRadius: CGFloat = 20.0
+                let opacity: Double = 0.65
+
+                Image(nsImage: musicManager.albumArt)
+                    .resizable()
+                    .aspectRatio(1, contentMode: .fit)
+                    .saturation(1.5)
+                    .brightness(0.04)
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                    .scaleEffect(scale)
+                    .blur(radius: blurRadius)
+                    .opacity(opacity)
+                    .allowsHitTesting(false)
             }
         }
     }
