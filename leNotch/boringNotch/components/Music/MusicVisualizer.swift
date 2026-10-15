@@ -169,23 +169,24 @@ struct AlbumEdgeGlowView: View {
 
             // Calibrated sizes:
             // - Mini: tight border glow that stays safely inside notch boundaries without reaching hardstops
-            // - Main expanded: matches initial attempt size (scale 1.04...1.15, blur 14...26)
+            // - Main expanded (Step 1 Increment): slightly bigger and brighter
             let scale: CGFloat = isMinimized
                 ? (1.08 + pulseEnergy * 0.05)
-                : (1.04 + pulseEnergy * 0.11)
+                : (1.08 + pulseEnergy * 0.11)
 
             let blurRadius: CGFloat = isMinimized
                 ? (2.2 + pulseEnergy * 1.2)
-                : (14.0 + pulseEnergy * 12.0)
+                : (18.0 + pulseEnergy * 12.0)
 
             let opacity: Double = isMinimized
                 ? Double(0.65 + pulseEnergy * 0.30)
-                : Double(0.40 + pulseEnergy * 0.35)
+                : Double(0.55 + pulseEnergy * 0.35)
 
             Image(nsImage: musicManager.albumArt)
                 .resizable()
                 .aspectRatio(1, contentMode: .fit)
-                .saturation(isMinimized ? 1.6 : 1.4)
+                .saturation(isMinimized ? 1.6 : 1.6)
+                .brightness(isMinimized ? 0.0 : 0.08)
                 .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
                 .scaleEffect(scale)
                 .blur(radius: blurRadius)
