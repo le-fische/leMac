@@ -69,7 +69,7 @@ Or open `boringNotch.xcodeproj` in Xcode and hit **Run** (`⌘R`).
 
 **leNotch** is inspired by and built upon the open-source project [boringNotch](https://github.com/TheBoredTeam/boring.notch) by **TheBoredTeam**. 
 
-We express our sincere gratitude and credit to the original authors, design contributors, and developers of `boringNotch` for the foundational concepts, architecture, and base files that made this project possible.
+I express my sincere gratitude and credit to the original authors, design contributors, and developers of `boringNotch` for the foundational concepts, architecture, and base files that made this project possible.
 
 ---
 
