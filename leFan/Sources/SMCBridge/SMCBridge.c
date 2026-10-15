@@ -73,12 +73,9 @@ int smc_init(void) {
     return (kr == KERN_SUCCESS) ? 0 : -1;
 }
 
-void smc_cleanup(void) {
-    if (g_conn) {
-        IOServiceClose(g_conn);
-        g_conn = 0;
-    }
-}
+void smc_cleanup(void); // forward declaration
+
+// Implemented at bottom with HID cleanup
 
 static kern_return_t smc_call(SMCKeyData *in, SMCKeyData *out) {
     size_t inSize = sizeof(SMCKeyData);
@@ -270,11 +267,26 @@ extern CFTypeRef IOHIDServiceClientCopyProperty(IOHIDServiceClientRef service, C
 extern IOHIDEventRef IOHIDServiceClientCopyEvent(IOHIDServiceClientRef service, int64_t type, int32_t options, int64_t timeout);
 extern double IOHIDEventGetFloatValue(IOHIDEventRef event, int32_t field);
 
-static void format_friendly_name(const char *rawName, char *outName, size_t outSize, char *outCat, size_t catSize) {
+typedef struct {
+    IOHIDServiceClientRef service;
+    char key[16];
+    char name[64];
+    char category[32];
+    bool isCPU;
+} CachedSensor_t;
+
+static IOHIDEventSystemClientRef g_hid_client = NULL;
+static CachedSensor_t g_cached_sensors[128];
+static int g_cached_sensor_count = 0;
+static bool g_sensors_discovered = false;
+
+static void format_friendly_name(const char *rawName, char *outName, size_t outSize, char *outCat, size_t catSize, bool *outIsCPU) {
+    *outIsCPU = false;
     if (strncmp(rawName, "PMU tdie", 8) == 0) {
         int coreNum = atoi(rawName + 8);
         snprintf(outName, outSize, "CPU Core %d", coreNum);
         strncpy(outCat, "CPU", catSize);
+        *outIsCPU = true;
     } else if (strcmp(rawName, "gas gauge battery") == 0) {
         strncpy(outName, "Battery", outSize);
         strncpy(outCat, "Battery", catSize);
@@ -290,69 +302,162 @@ static void format_friendly_name(const char *rawName, char *outName, size_t outS
     } else {
         snprintf(outName, outSize, "%s", rawName);
         strncpy(outCat, "System", catSize);
+        if (strstr(rawName, "CPU") || strstr(rawName, "Core")) {
+            *outIsCPU = true;
+        }
     }
+}
+
+static void ensure_hid_sensors_initialized(void) {
+    if (g_sensors_discovered) return;
+    g_sensors_discovered = true;
+
+    if (!g_hid_client) {
+        g_hid_client = IOHIDEventSystemClientCreate(kCFAllocatorDefault);
+        if (!g_hid_client) return;
+    }
+
+    int page = 0xff00;
+    int usage = 5;
+    CFNumberRef pageNum = CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &page);
+    CFNumberRef usageNum = CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &usage);
+    const void *keys[] = { CFSTR("PrimaryUsagePage"), CFSTR("PrimaryUsage") };
+    const void *vals[] = { pageNum, usageNum };
+    CFDictionaryRef matching = CFDictionaryCreate(kCFAllocatorDefault, keys, vals, 2,
+                                                  &kCFTypeDictionaryKeyCallBacks,
+                                                  &kCFTypeDictionaryValueCallBacks);
+    IOHIDEventSystemClientSetMatching(g_hid_client, matching);
+    CFRelease(matching);
+    CFRelease(pageNum);
+    CFRelease(usageNum);
+
+    CFArrayRef services = IOHIDEventSystemClientCopyServices(g_hid_client);
+    if (!services) return;
+
+    CFIndex total = CFArrayGetCount(services);
+    for (CFIndex i = 0; i < total && g_cached_sensor_count < 128; i++) {
+        IOHIDServiceClientRef s = (IOHIDServiceClientRef)CFArrayGetValueAtIndex(services, i);
+        CFStringRef pName = (CFStringRef)IOHIDServiceClientCopyProperty(s, CFSTR("Product"));
+        if (!pName) continue;
+
+        char rawBuf[64];
+        CFStringGetCString(pName, rawBuf, sizeof(rawBuf), kCFStringEncodingUTF8);
+        CFRelease(pName);
+
+        // Test one event read to verify validity
+        IOHIDEventRef event = IOHIDServiceClientCopyEvent(s, kIOHIDEventTypeTemperature, 0, 0);
+        if (!event) continue;
+        double val = IOHIDEventGetFloatValue(event, IOHIDEventFieldBase(kIOHIDEventTypeTemperature));
+        CFRelease(event);
+        if (val < 0.0 || val > 125.0) continue;
+
+        // De-duplicate sensors by raw name
+        bool isDup = false;
+        for (int d = 0; d < g_cached_sensor_count; d++) {
+            if (strcmp(g_cached_sensors[d].key, rawBuf) == 0) {
+                isDup = true;
+                break;
+            }
+        }
+        if (isDup) continue;
+
+        CachedSensor_t *cs = &g_cached_sensors[g_cached_sensor_count];
+        cs->service = (IOHIDServiceClientRef)CFRetain(s);
+        strncpy(cs->key, rawBuf, sizeof(cs->key) - 1);
+        format_friendly_name(rawBuf, cs->name, sizeof(cs->name) - 1, cs->category, sizeof(cs->category) - 1, &cs->isCPU);
+        g_cached_sensor_count++;
+    }
+    CFRelease(services);
+}
+
+bool smc_get_quick_cpu_temp(float *outCpuAvg, float *outCpuMax, float *outHighest) {
+    ensure_hid_sensors_initialized();
+    if (g_cached_sensor_count == 0) return false;
+
+    float sum = 0.0f;
+    int cpuCount = 0;
+    float maxCpu = 0.0f;
+
+    for (int i = 0; i < g_cached_sensor_count; i++) {
+        CachedSensor_t *cs = &g_cached_sensors[i];
+        if (!cs->isCPU) continue;
+        IOHIDEventRef event = IOHIDServiceClientCopyEvent(cs->service, kIOHIDEventTypeTemperature, 0, 0);
+        if (!event) continue;
+        double val = IOHIDEventGetFloatValue(event, IOHIDEventFieldBase(kIOHIDEventTypeTemperature));
+        CFRelease(event);
+
+        if (val < 0.0 || val > 125.0) continue;
+        float fVal = (float)val;
+        sum += fVal;
+        cpuCount++;
+        if (fVal > maxCpu) maxCpu = fVal;
+    }
+
+    if (cpuCount == 0) {
+        // Fallback: if no sensors were tagged isCPU, query up to 4 sensors
+        for (int i = 0; i < g_cached_sensor_count && cpuCount < 4; i++) {
+            CachedSensor_t *cs = &g_cached_sensors[i];
+            IOHIDEventRef event = IOHIDServiceClientCopyEvent(cs->service, kIOHIDEventTypeTemperature, 0, 0);
+            if (!event) continue;
+            double val = IOHIDEventGetFloatValue(event, IOHIDEventFieldBase(kIOHIDEventTypeTemperature));
+            CFRelease(event);
+            if (val > 0.0 && val < 125.0) {
+                float fVal = (float)val;
+                sum += fVal;
+                cpuCount++;
+                if (fVal > maxCpu) maxCpu = fVal;
+            }
+        }
+    }
+
+    float avg = (cpuCount > 0) ? (sum / (float)cpuCount) : 40.0f;
+    float mx = (cpuCount > 0) ? maxCpu : 40.0f;
+    if (outCpuAvg) *outCpuAvg = avg;
+    if (outCpuMax) *outCpuMax = mx;
+    if (outHighest) *outHighest = mx;
+    return true;
 }
 
 int smc_get_all_sensors(SensorInfo_t *outSensors, int maxSensors) {
     if (!outSensors || maxSensors <= 0) return 0;
+    ensure_hid_sensors_initialized();
+
     int count = 0;
+    for (int i = 0; i < g_cached_sensor_count && count < maxSensors; i++) {
+        CachedSensor_t *cs = &g_cached_sensors[i];
+        IOHIDEventRef event = IOHIDServiceClientCopyEvent(cs->service, kIOHIDEventTypeTemperature, 0, 0);
+        if (!event) continue;
+        double val = IOHIDEventGetFloatValue(event, IOHIDEventFieldBase(kIOHIDEventTypeTemperature));
+        CFRelease(event);
 
-    IOHIDEventSystemClientRef client = IOHIDEventSystemClientCreate(kCFAllocatorDefault);
-    if (client) {
-        int page = 0xff00;
-        int usage = 5;
-        CFNumberRef pageNum = CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &page);
-        CFNumberRef usageNum = CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &usage);
-        const void *keys[] = { CFSTR("PrimaryUsagePage"), CFSTR("PrimaryUsage") };
-        const void *vals[] = { pageNum, usageNum };
-        CFDictionaryRef matching = CFDictionaryCreate(kCFAllocatorDefault, keys, vals, 2,
-                                                      &kCFTypeDictionaryKeyCallBacks,
-                                                      &kCFTypeDictionaryValueCallBacks);
-        IOHIDEventSystemClientSetMatching(client, matching);
-        CFRelease(matching);
-        CFRelease(pageNum);
-        CFRelease(usageNum);
+        if (val < 0.0 || val > 125.0) continue;
 
-        CFArrayRef services = IOHIDEventSystemClientCopyServices(client);
-        if (services) {
-            CFIndex total = CFArrayGetCount(services);
-            for (CFIndex i = 0; i < total && count < maxSensors; i++) {
-                IOHIDServiceClientRef s = (IOHIDServiceClientRef)CFArrayGetValueAtIndex(services, i);
-                CFStringRef pName = (CFStringRef)IOHIDServiceClientCopyProperty(s, CFSTR("Product"));
-                if (!pName) continue;
-
-                char rawBuf[64];
-                CFStringGetCString(pName, rawBuf, sizeof(rawBuf), kCFStringEncodingUTF8);
-                CFRelease(pName);
-
-                IOHIDEventRef event = IOHIDServiceClientCopyEvent(s, kIOHIDEventTypeTemperature, 0, 0);
-                if (!event) continue;
-                double val = IOHIDEventGetFloatValue(event, IOHIDEventFieldBase(kIOHIDEventTypeTemperature));
-                CFRelease(event);
-
-                // Filter out non-sensical values
-                if (val < 0.0 || val > 125.0) continue;
-
-                // De-duplicate sensors by raw name
-                bool isDup = false;
-                for (int d = 0; d < count; d++) {
-                    if (strcmp(outSensors[d].key, rawBuf) == 0) {
-                        isDup = true;
-                        break;
-                    }
-                }
-                if (isDup) continue;
-
-                SensorInfo_t *sensor = &outSensors[count];
-                strncpy(sensor->key, rawBuf, sizeof(sensor->key) - 1);
-                format_friendly_name(rawBuf, sensor->name, sizeof(sensor->name) - 1, sensor->category, sizeof(sensor->category) - 1);
-                sensor->temperatureC = (float)val;
-                count++;
-            }
-            CFRelease(services);
-        }
-        CFRelease(client);
+        SensorInfo_t *sensor = &outSensors[count];
+        strncpy(sensor->key, cs->key, sizeof(sensor->key) - 1);
+        strncpy(sensor->name, cs->name, sizeof(sensor->name) - 1);
+        strncpy(sensor->category, cs->category, sizeof(sensor->category) - 1);
+        sensor->temperatureC = (float)val;
+        count++;
     }
-
     return count;
+}
+
+void smc_cleanup(void) {
+    if (g_conn) {
+        IOServiceClose(g_conn);
+        g_conn = 0;
+    }
+    for (int i = 0; i < g_cached_sensor_count; i++) {
+        if (g_cached_sensors[i].service) {
+            CFRelease(g_cached_sensors[i].service);
+            g_cached_sensors[i].service = NULL;
+        }
+    }
+    g_cached_sensor_count = 0;
+    g_sensors_discovered = false;
+
+    if (g_hid_client) {
+        CFRelease(g_hid_client);
+        g_hid_client = NULL;
+    }
 }

@@ -22,7 +22,6 @@ public enum MainTab: String, CaseIterable, Identifiable {
 
 public struct MainWindowView: View {
     @ObservedObject var appState: AppState
-    @State private var selectedTab: MainTab = .fans
 
     public var body: some View {
         NavigationSplitView {
@@ -57,15 +56,15 @@ public struct MainWindowView: View {
 
                 // Navigation Items
                 ForEach(MainTab.allCases) { tab in
-                    Button(action: { selectedTab = tab }) {
+                    Button(action: { appState.activeTab = tab }) {
                         HStack(spacing: 10) {
                             Image(systemName: tab.icon)
                                 .font(.system(size: 13, weight: .medium))
                                 .frame(width: 20)
-                                .foregroundColor(selectedTab == tab ? .white : .secondary)
+                                .foregroundColor(appState.activeTab == tab ? .white : .secondary)
 
                             Text(tab.rawValue)
-                                .font(.system(size: 13, weight: selectedTab == tab ? .semibold : .regular))
+                                .font(.system(size: 13, weight: appState.activeTab == tab ? .semibold : .regular))
 
                             Spacer()
 
@@ -80,8 +79,8 @@ public struct MainWindowView: View {
                         }
                         .padding(.horizontal, 10)
                         .padding(.vertical, 7)
-                        .background(selectedTab == tab ? Color.cyan : Color.clear)
-                        .foregroundColor(selectedTab == tab ? .white : .primary)
+                        .background(appState.activeTab == tab ? Color.cyan : Color.clear)
+                        .foregroundColor(appState.activeTab == tab ? .white : .primary)
                         .cornerRadius(8)
                     }
                     .buttonStyle(.plain)
@@ -111,7 +110,7 @@ public struct MainWindowView: View {
         } detail: {
             // Main Content Area
             ZStack {
-                switch selectedTab {
+                switch appState.activeTab {
                 case .fans:
                     FansDashboardView(appState: appState)
                 case .presets:
@@ -124,7 +123,7 @@ public struct MainWindowView: View {
                     SettingsView(appState: appState)
                 }
             }
-            .navigationTitle(selectedTab.rawValue)
+            .navigationTitle(appState.activeTab.rawValue)
             .toolbar {
                 ToolbarItemGroup(placement: .primaryAction) {
                     // Quick Preset Selector in Toolbar

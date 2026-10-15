@@ -26,6 +26,23 @@ public final class AppState: ObservableObject {
     @Published public var tempHistory: [Double] = []
 
     @Published public var macModelName: String = "MacBook Pro (Apple Silicon)"
+    @Published public var activeTab: MainTab = .fans {
+        didSet {
+            if oldValue != activeTab && activeTab == .sensors {
+                refreshMetrics()
+            }
+        }
+    }
+    @Published public var isMainWindowVisible: Bool = true {
+        didSet {
+            if oldValue != isMainWindowVisible {
+                startMonitoring()
+                if isMainWindowVisible {
+                    refreshMetrics()
+                }
+            }
+        }
+    }
 
     private var timer: Timer?
     private let presetsKey = "leFan_CustomPresets"
@@ -43,7 +60,8 @@ public final class AppState: ObservableObject {
 
     public func startMonitoring() {
         timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: settings.pollingInterval, repeats: true) { [weak self] _ in
+        let interval: TimeInterval = isMainWindowVisible ? settings.pollingInterval : 3.0
+        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.refreshMetrics()
             }
@@ -76,6 +94,20 @@ public final class AppState: ObservableObject {
         }
     }
 
+    public var needsFullSensors: Bool {
+        if isMainWindowVisible && activeTab == .sensors {
+            return true
+        }
+        for fan in fans {
+            if case .sensorCurve(let key, _, _) = fan.mode {
+                if key != "CPU_AVG" && key != "CPU_MAX" {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
     public func refreshMetrics() {
         // Read fans
         let freshFans = SMCService.shared.readFans()
@@ -84,51 +116,70 @@ public final class AppState: ObservableObject {
         } else {
             for i in 0..<freshFans.count {
                 if i < self.fans.count {
-                    self.fans[i].actualRPM = freshFans[i].actualRPM
-                    self.fans[i].minRPM = freshFans[i].minRPM
-                    self.fans[i].maxRPM = freshFans[i].maxRPM
-                    // Don't overwrite user selected mode with hardware status if we are managing it
+                    if abs(self.fans[i].actualRPM - freshFans[i].actualRPM) >= 1.0 {
+                        self.fans[i].actualRPM = freshFans[i].actualRPM
+                    }
+                    if self.fans[i].minRPM != freshFans[i].minRPM {
+                        self.fans[i].minRPM = freshFans[i].minRPM
+                    }
+                    if self.fans[i].maxRPM != freshFans[i].maxRPM {
+                        self.fans[i].maxRPM = freshFans[i].maxRPM
+                    }
                 } else {
                     self.fans.append(freshFans[i])
                 }
             }
         }
 
-        // Read sensors
-        let sensorData = SMCService.shared.readSensors()
-        self.cpuAvgTemp = sensorData.cpuAvg
-        self.cpuMaxTemp = sensorData.cpuMax
-        self.highestTemp = sensorData.highest
+        // Targeted sensor polling: full list only when sensors tab is open or custom curve active
+        if sensors.isEmpty || needsFullSensors {
+            let sensorData = SMCService.shared.readSensors()
+            if abs(self.cpuAvgTemp - sensorData.cpuAvg) >= 0.1 { self.cpuAvgTemp = sensorData.cpuAvg }
+            if abs(self.cpuMaxTemp - sensorData.cpuMax) >= 0.1 { self.cpuMaxTemp = sensorData.cpuMax }
+            if abs(self.highestTemp - sensorData.highest) >= 0.1 { self.highestTemp = sensorData.highest }
 
-        if self.sensors.isEmpty {
-            self.sensors = sensorData.sensors
-        } else {
-            for fresh in sensorData.sensors {
-                if let idx = self.sensors.firstIndex(where: { $0.id == fresh.id }) {
-                    self.sensors[idx].updateTemperature(fresh.temperatureC)
-                } else {
-                    self.sensors.append(fresh)
+            if self.sensors.isEmpty {
+                self.sensors = sensorData.sensors
+            } else {
+                for fresh in sensorData.sensors {
+                    if let idx = self.sensors.firstIndex(where: { $0.id == fresh.id }) {
+                        if abs(self.sensors[idx].temperatureC - fresh.temperatureC) >= 0.2 {
+                            self.sensors[idx].updateTemperature(fresh.temperatureC)
+                        }
+                    } else {
+                        self.sensors.append(fresh)
+                    }
                 }
             }
+        } else {
+            let quick = SMCService.shared.readQuickMetrics()
+            if abs(self.cpuAvgTemp - quick.cpuAvg) >= 0.1 { self.cpuAvgTemp = quick.cpuAvg }
+            if abs(self.cpuMaxTemp - quick.cpuMax) >= 0.1 { self.cpuMaxTemp = quick.cpuMax }
+            if abs(self.highestTemp - quick.highest) >= 0.1 { self.highestTemp = quick.highest }
         }
 
         // Calculate average RPM
         if !fans.isEmpty {
             let totalRPM = fans.reduce(0.0) { $0 + $1.actualRPM }
-            self.averageRPM = totalRPM / Double(fans.count)
+            let avg = totalRPM / Double(fans.count)
+            if abs(self.averageRPM - avg) >= 1.0 {
+                self.averageRPM = avg
+            }
         }
 
-        // Telemetry history
-        rpmHistory.append(averageRPM)
-        if rpmHistory.count > 60 { rpmHistory.removeFirst() }
+        // Telemetry history only needed when telemetry view is visible
+        if isMainWindowVisible && activeTab == .telemetry {
+            rpmHistory.append(averageRPM)
+            if rpmHistory.count > 60 { rpmHistory.removeFirst() }
 
-        tempHistory.append(highestTemp)
-        if tempHistory.count > 60 { tempHistory.removeFirst() }
+            tempHistory.append(highestTemp)
+            if tempHistory.count > 60 { tempHistory.removeFirst() }
+        }
 
         // Evaluate sensor curves
         evaluateFanCurves()
 
-        // Periodic helper check
+        // Periodic helper check (only if disconnected)
         if helperStatus != .connected {
             checkHelper()
         }
@@ -150,12 +201,15 @@ public final class AppState: ObservableObject {
                     let ratio = (currentTemp - lowTemp) / max(highTemp - lowTemp, 1.0)
                     target = fan.minRPM + (fan.maxRPM - fan.minRPM) * ratio
                 }
-                fans[idx].targetRPM = target
-                _ = HelperClient.shared.setFanMode(fanIndex: fan.id, mode: fan.mode, targetRPM: target)
+                // Only send to helper if target changed significantly (>= 25 RPM)
+                if abs(fan.targetRPM - target) >= 25.0 {
+                    fans[idx].targetRPM = target
+                    _ = HelperClient.shared.setFanMode(fanIndex: fan.id, mode: fan.mode, targetRPM: target)
+                }
 
-            case .constant(let rpm):
-                fans[idx].targetRPM = rpm
-                _ = HelperClient.shared.setFanMode(fanIndex: fan.id, mode: fan.mode, targetRPM: rpm)
+            case .constant:
+                // Already configured on mode selection; no need to repeatedly spam socket IPC
+                break
 
             case .auto:
                 break

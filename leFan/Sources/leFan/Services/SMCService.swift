@@ -43,6 +43,16 @@ public final class SMCService {
         return fans
     }
 
+    public func readQuickMetrics() -> (cpuAvg: Double, cpuMax: Double, highest: Double) {
+        var avg: Float = 0
+        var max: Float = 0
+        var highest: Float = 0
+        if smc_get_quick_cpu_temp(&avg, &max, &highest) {
+            return (cpuAvg: Double(avg), cpuMax: Double(max), highest: Double(highest))
+        }
+        return (cpuAvg: 35.0, cpuMax: 35.0, highest: 35.0)
+    }
+
     public func readSensors() -> (sensors: [Sensor], cpuAvg: Double, cpuMax: Double, highest: Double) {
         var rawSensors = [SensorInfo_t](repeating: SensorInfo_t(), count: 128)
         let count = Int(smc_get_all_sensors(&rawSensors, 128))

@@ -31,7 +31,11 @@ void smc_cleanup(void);
 int smc_get_fan_count(void);
 bool smc_get_fan_info(int fanIndex, FanInfo_t *outInfo);
 
+// Full sensor polling (only when Sensors tab is active)
 int smc_get_all_sensors(SensorInfo_t *outSensors, int maxSensors);
+
+// Targeted fast polling for menu bar & background (only reads CPU/SoC temperatures)
+bool smc_get_quick_cpu_temp(float *outCpuAvg, float *outCpuMax, float *outHighest);
 
 bool smc_is_apple_silicon(void);
 

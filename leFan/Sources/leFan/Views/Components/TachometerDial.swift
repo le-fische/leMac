@@ -8,7 +8,7 @@ public struct TachometerDial: View {
     let isManual: Bool
     let modeTitle: String
 
-    @State private var rotationAngle: Double = 0
+    @State private var isSpinning: Bool = false
 
     private var percentage: Double {
         guard maxRPM > minRPM else { return 0 }
@@ -66,12 +66,18 @@ public struct TachometerDial: View {
                 Image(systemName: "fanblades.fill")
                     .font(.system(size: 26, weight: .semibold))
                     .foregroundStyle(gaugeColor)
-                    .rotationEffect(.degrees(rotationAngle))
+                    .rotationEffect(.degrees(isSpinning && actualRPM > 100 ? 360 : 0))
+                    .animation(
+                        isSpinning && actualRPM > 100
+                            ? .linear(duration: 2.0).repeatForever(autoreverses: false)
+                            : .default,
+                        value: isSpinning && actualRPM > 100
+                    )
                     .onAppear {
-                        startSpinAnimation()
+                        isSpinning = true
                     }
-                    .onChange(of: actualRPM) { _, _ in
-                        startSpinAnimation()
+                    .onDisappear {
+                        isSpinning = false
                     }
 
                 // RPM readout
@@ -117,13 +123,5 @@ public struct TachometerDial: View {
             }
         }
         .frame(width: 190, height: 190)
-    }
-
-    private func startSpinAnimation() {
-        // Higher RPM = faster spin
-        let speedFactor = max(actualRPM / 3000.0, 0.4)
-        withAnimation(.linear(duration: 2.0 / speedFactor).repeatForever(autoreverses: false)) {
-            rotationAngle += 360
-        }
     }
 }

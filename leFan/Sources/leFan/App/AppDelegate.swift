@@ -1,14 +1,21 @@
 import Cocoa
 import SwiftUI
+import Combine
 
 @MainActor
-public final class AppDelegate: NSObject, NSApplicationDelegate {
+public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     public static var shared: AppDelegate?
 
     private var statusItem: NSStatusItem?
     private var popover: NSPopover?
     private var mainWindow: NSWindow?
     private var cancellables = Set<AnyCancellable>()
+
+    private let menuBarImage: NSImage? = {
+        let img = NSImage(systemSymbolName: "fanblades.fill", accessibilityDescription: "Fan")
+        img?.isTemplate = true
+        return img
+    }()
 
     public func applicationDidFinishLaunching(_ notification: Notification) {
         AppDelegate.shared = self
@@ -17,13 +24,17 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         observeAppState()
 
         DispatchQueue.main.async { [weak self] in
-            if let window = NSApplication.shared.windows.first {
-                self?.mainWindow = window
+            guard let self = self else { return }
+            if let window = NSApplication.shared.windows.first(where: { !$0.className.contains("StatusBar") }) {
+                self.mainWindow = window
+                window.delegate = self
+                window.isReleasedWhenClosed = false
                 window.title = "leFan"
                 window.subtitle = AppState.shared.macModelName
                 window.minSize = NSSize(width: 850, height: 620)
-                window.makeKeyAndOrderFront(nil)
+                window.makeKeyAndOrderFront(self)
                 NSApp.activate(ignoringOtherApps: true)
+                AppState.shared.isMainWindowVisible = true
             }
         }
     }
@@ -31,6 +42,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupMenuBar() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = statusItem?.button {
+            button.image = menuBarImage
+            button.imagePosition = .imageLeading
             button.action = #selector(togglePopover(_:))
             button.target = self
             updateStatusItemTitle()
@@ -56,23 +69,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func observeAppState() {
-        // Update menu bar title when telemetry changes
-        AppState.shared.$averageRPM
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.updateStatusItemTitle()
-            }
-            .store(in: &cancellables)
-
-        AppState.shared.$highestTemp
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.updateStatusItemTitle()
-            }
-            .store(in: &cancellables)
-
-        AppState.shared.$settings
-            .receive(on: DispatchQueue.main)
+        // Throttle menu bar updates and coalesce multiple property changes into a single redraw
+        Publishers.CombineLatest3(AppState.shared.$averageRPM, AppState.shared.$highestTemp, AppState.shared.$settings)
+            .throttle(for: .milliseconds(500), scheduler: DispatchQueue.main, latest: true)
             .sink { [weak self] _ in
                 self?.updateStatusItemTitle()
             }
@@ -83,22 +82,25 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let button = statusItem?.button else { return }
         let state = AppState.shared
 
-        let rpmStr = "\(Int(state.averageRPM)) RPM"
-        let tempStr = state.formatTemp(state.highestTemp)
-
-        let image = NSImage(systemSymbolName: "fanblades.fill", accessibilityDescription: "Fan")
-        button.image = image
-        button.imagePosition = .imageLeading
-
+        let newTitle: String
         switch state.settings.menuBarMode {
         case .rpmAndTemp:
-            button.title = " \(rpmStr)  \(tempStr)"
+            let rpmStr = "\(Int(state.averageRPM)) RPM"
+            let tempStr = state.formatTemp(state.highestTemp)
+            newTitle = " \(rpmStr)  \(tempStr)"
         case .rpmOnly:
-            button.title = " \(rpmStr)"
+            let rpmStr = "\(Int(state.averageRPM)) RPM"
+            newTitle = " \(rpmStr)"
         case .tempOnly:
-            button.title = " \(tempStr)"
+            let tempStr = state.formatTemp(state.highestTemp)
+            newTitle = " \(tempStr)"
         case .iconOnly:
-            button.title = ""
+            newTitle = ""
+        }
+
+        // Only update if changed to avoid unnecessary AppKit layout passes
+        if button.title != newTitle {
+            button.title = newTitle
         }
     }
 
@@ -115,12 +117,16 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     public func openMainWindow() {
         popover?.performClose(nil)
         if let window = mainWindow {
-            window.makeKeyAndOrderFront(nil)
+            window.makeKeyAndOrderFront(self)
             NSApplication.shared.activate(ignoringOtherApps: true)
-        } else if let window = NSApplication.shared.windows.first {
+            AppState.shared.isMainWindowVisible = true
+        } else if let window = NSApplication.shared.windows.first(where: { !$0.className.contains("StatusBar") }) {
             self.mainWindow = window
-            window.makeKeyAndOrderFront(nil)
+            window.delegate = self
+            window.isReleasedWhenClosed = false
+            window.makeKeyAndOrderFront(self)
             NSApplication.shared.activate(ignoringOtherApps: true)
+            AppState.shared.isMainWindowVisible = true
         }
     }
 
@@ -130,6 +136,34 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         return true
     }
-}
 
-import Combine
+    // MARK: - NSWindowDelegate (Window Visibility Tracking)
+
+    public func windowShouldClose(_ sender: NSWindow) -> Bool {
+        sender.orderOut(nil)
+        AppState.shared.isMainWindowVisible = false
+        return false
+    }
+
+    public func windowWillClose(_ notification: Notification) {
+        AppState.shared.isMainWindowVisible = false
+    }
+
+    public func windowDidMiniaturize(_ notification: Notification) {
+        AppState.shared.isMainWindowVisible = false
+    }
+
+    public func windowDidDeminiaturize(_ notification: Notification) {
+        AppState.shared.isMainWindowVisible = true
+    }
+
+    public func windowDidBecomeKey(_ notification: Notification) {
+        AppState.shared.isMainWindowVisible = true
+    }
+
+    public func windowDidChangeOcclusionState(_ notification: Notification) {
+        if let window = notification.object as? NSWindow {
+            AppState.shared.isMainWindowVisible = window.occlusionState.contains(.visible)
+        }
+    }
+}
