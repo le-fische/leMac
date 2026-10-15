@@ -36,9 +36,9 @@ class AudioSpectrum: NSView {
 
     private func setupBars() {
         let barWidth: CGFloat = 2
-        let barCount = 4
-        let spacing: CGFloat = barWidth
-        let totalWidth = CGFloat(barCount) * (barWidth + spacing)
+        let barCount = 5
+        let spacing: CGFloat = 1.5
+        let totalWidth = CGFloat(barCount) * barWidth + CGFloat(barCount - 1) * spacing
         let totalHeight: CGFloat = 14
         frame.size = CGSize(width: totalWidth, height: totalHeight)
 
@@ -84,34 +84,29 @@ class AudioSpectrum: NSView {
         let levels = SystemAudioMonitor.shared.sampleLevels()
         let levelsArray = levels.asArray
 
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
         for (i, barLayer) in barLayers.enumerated() {
             let currentScale = barScales[i]
-
-            // Use real audio band level; add subtle organic jitter,
-            // then clamp to a minimum so bars never fully vanish while playing.
             let level = CGFloat(i < levelsArray.count ? levelsArray[i] : 0)
-            let jitter = CGFloat.random(in: -0.02 ... 0.02)
-            let targetScale = max(0.15, min(1.0, level + jitter))
-
-            barScales[i] = targetScale
-
-            let animation = CABasicAnimation(keyPath: "transform.scale.y")
-            animation.fromValue = currentScale
-            animation.toValue = targetScale
-            animation.duration = 1.0 / 60.0
-            animation.timingFunction = CAMediaTimingFunction(name: .easeOut)
-            animation.fillMode = .forwards
-            animation.isRemovedOnCompletion = false
-            barLayer.add(animation, forKey: "scaleY")
+            let targetScale = max(0.14, min(1.0, level))
+            // Fast attack, smooth natural decay
+            let factor: CGFloat = targetScale > currentScale ? 0.60 : 0.22
+            let newScale = currentScale + factor * (targetScale - currentScale)
+            barScales[i] = newScale
+            barLayer.transform = CATransform3DMakeScale(1, newScale, 1)
         }
+        CATransaction.commit()
     }
 
     private func resetBars() {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
         for (i, barLayer) in barLayers.enumerated() {
-            barLayer.removeAllAnimations()
             barLayer.transform = CATransform3DMakeScale(1, 0.15, 1)
             barScales[i] = 0.15
         }
+        CATransaction.commit()
     }
 
     func setPlaying(_ playing: Bool) {
@@ -169,25 +164,63 @@ struct AlbumEdgeGlowView: View {
         if Defaults[.enableExpandedVisualizerGlow] && musicManager.isPlaying {
             let beat = CGFloat(audioMonitor.beatLevel)
             let bass = CGFloat(audioMonitor.bandLevels.bass)
-            let scale: CGFloat = isMinimized
-                ? (1.06 + beat * 0.12)
-                : (1.04 + beat * 0.08 + bass * 0.04)
-            let blurRadius: CGFloat = isMinimized
-                ? (3.0 + beat * 3.5)
-                : (10.0 + beat * 8.0 + bass * 4.0)
-            let opacity: Double = isMinimized
-                ? Double(0.40 + beat * 0.45)
-                : Double(0.45 + beat * 0.40)
+            let sub = CGFloat(audioMonitor.bandLevels.subBass)
+            let pulseEnergy = max(beat, (bass * 0.6 + sub * 0.4))
 
-            Image(nsImage: musicManager.albumArt)
-                .resizable()
-                .aspectRatio(1, contentMode: .fit)
-                .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-                .scaleEffect(scale)
-                .blur(radius: blurRadius)
-                .opacity(opacity)
-                .animation(.easeOut(duration: 0.08), value: beat)
-                .allowsHitTesting(false)
+            // Robust scales so the glow clearly radiates well beyond the black borders
+            let innerScale: CGFloat = isMinimized
+                ? (1.20 + pulseEnergy * 0.22)
+                : (1.10 + pulseEnergy * 0.12)
+            let outerScale: CGFloat = isMinimized
+                ? (1.42 + pulseEnergy * 0.32)
+                : (1.25 + pulseEnergy * 0.20)
+
+            let innerBlur: CGFloat = isMinimized
+                ? (3.5 + pulseEnergy * 2.5)
+                : (12.0 + pulseEnergy * 8.0)
+            let outerBlur: CGFloat = isMinimized
+                ? (8.0 + pulseEnergy * 4.0)
+                : (28.0 + pulseEnergy * 14.0)
+
+            let innerOpacity: Double = isMinimized
+                ? Double(0.95 + pulseEnergy * 0.05)
+                : Double(0.90 + pulseEnergy * 0.10)
+            let outerOpacity: Double = isMinimized
+                ? Double(0.70 + pulseEnergy * 0.25)
+                : Double(0.65 + pulseEnergy * 0.25)
+
+            ZStack {
+                // Wide ambient atmospheric bloom in album edge colors
+                Image(nsImage: musicManager.albumArt)
+                    .resizable()
+                    .aspectRatio(1, contentMode: .fit)
+                    .saturation(2.0)
+                    .brightness(0.18)
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                    .scaleEffect(outerScale)
+                    .blur(radius: outerBlur)
+                    .opacity(outerOpacity)
+
+                // Intense tight edge rim glow
+                Image(nsImage: musicManager.albumArt)
+                    .resizable()
+                    .aspectRatio(1, contentMode: .fit)
+                    .saturation(2.2)
+                    .brightness(0.22)
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                    .scaleEffect(innerScale)
+                    .blur(radius: innerBlur)
+                    .opacity(innerOpacity)
+
+                // Edge tint backing to guarantee vibrant glow even on pitch-black album borders
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(Color(nsColor: musicManager.avgColor).ensureMinimumBrightness(factor: 0.8))
+                    .scaleEffect(innerScale * 0.98)
+                    .blur(radius: innerBlur * 1.2)
+                    .opacity(Double(0.35 + pulseEnergy * 0.35))
+            }
+            .allowsHitTesting(false)
+            .animation(.easeOut(duration: 0.08), value: pulseEnergy)
         }
     }
 }
@@ -195,7 +228,7 @@ struct AlbumEdgeGlowView: View {
 #Preview {
     AudioSpectrumView(
         isPlaying: .constant(true),
-        bandLevels: AudioBandLevels(bass: 0.7, lowMid: 0.5, highMid: 0.3, treble: 0.2)
+        bandLevels: AudioBandLevels(subBass: 0.8, bass: 0.7, mid: 0.5, highMid: 0.3, treble: 0.2)
     )
     .frame(width: 16, height: 20)
     .padding()
