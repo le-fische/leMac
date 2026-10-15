@@ -80,22 +80,6 @@ struct BoringHeader: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
-                        if Defaults[.showMirror] {
-                            Button(action: {
-                                vm.toggleCameraPreview()
-                            }) {
-                                Capsule()
-                                    .fill(.black)
-                                    .frame(width: 30, height: 30)
-                                    .overlay {
-                                        Image(systemName: "web.camera")
-                                            .foregroundColor(.white)
-                                            .padding()
-                                            .imageScale(.medium)
-                                    }
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
                         if Defaults[.settingsIconInNotch] {
                             Button(action: {
                                 DispatchQueue.main.async {
@@ -142,7 +126,7 @@ struct BoringHeader: View {
 
     func isHUDType(_ type: SneakContentType) -> Bool {
         switch type {
-        case .volume, .brightness, .backlight, .mic, .bluetooth, .timer:
+        case .volume, .brightness, .backlight, .mic, .timer:
             return true
         default:
             return false

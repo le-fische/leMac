@@ -16,8 +16,6 @@ import SwiftUIIntrospect
 @MainActor
 struct ContentView: View {
     @EnvironmentObject var vm: BoringViewModel
-    @ObservedObject var webcamManager = WebcamManager.shared
-
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
@@ -390,18 +388,26 @@ struct ContentView: View {
     @ViewBuilder
     func MusicLiveActivity() -> some View {
         HStack {
-            Image(nsImage: musicManager.albumArt)
-                .resizable()
-                .clipped()
-                .clipShape(
-                    RoundedRectangle(
-                        cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed)
-                )
-                .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
-                .frame(
-                    width: max(0, vm.effectiveClosedNotchHeight - 12),
-                    height: max(0, vm.effectiveClosedNotchHeight - 12)
-                )
+            ZStack {
+                if Defaults[.enableExpandedVisualizerGlow] {
+                    AlbumEdgeGlowView(
+                        cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed,
+                        isMinimized: true
+                    )
+                }
+                Image(nsImage: musicManager.albumArt)
+                    .resizable()
+                    .clipped()
+                    .clipShape(
+                        RoundedRectangle(
+                            cornerRadius: MusicPlayerImageSizes.cornerRadiusInset.closed)
+                    )
+                    .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
+            }
+            .frame(
+                width: max(0, vm.effectiveClosedNotchHeight - 12),
+                height: max(0, vm.effectiveClosedNotchHeight - 12)
+            )
 
             Rectangle()
                 .fill(.black)

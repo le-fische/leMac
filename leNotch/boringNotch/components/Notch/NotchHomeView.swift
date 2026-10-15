@@ -28,35 +28,21 @@ struct AlbumArtView: View {
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var vm: BoringViewModel
     let albumArtNamespace: Namespace.ID
-    @State private var glowPulse: Bool = false
+
+    private var cornerRadius: CGFloat {
+        Defaults[.cornerRadiusScaling]
+            ? MusicPlayerImageSizes.cornerRadiusInset.opened
+            : MusicPlayerImageSizes.cornerRadiusInset.closed
+    }
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            if Defaults[.lightingEffect] {
+            if Defaults[.enableExpandedVisualizerGlow] {
+                AlbumEdgeGlowView(cornerRadius: cornerRadius, isMinimized: false)
+            } else if Defaults[.lightingEffect] {
                 albumArtBackground
             }
-            if Defaults[.enableExpandedVisualizerGlow] && musicManager.isPlaying {
-                visualizerGlow
-            }
             albumArtButton
-        }
-    }
-
-    private var visualizerGlow: some View {
-        RoundedRectangle(
-            cornerRadius: Defaults[.cornerRadiusScaling]
-                ? MusicPlayerImageSizes.cornerRadiusInset.opened
-                : MusicPlayerImageSizes.cornerRadiusInset.closed
-        )
-        .fill(Color(nsColor: musicManager.avgColor))
-        .aspectRatio(1, contentMode: .fit)
-        .scaleEffect(glowPulse ? 1.15 : 1.04)
-        .blur(radius: glowPulse ? 26 : 14)
-        .opacity(glowPulse ? 0.75 : 0.40)
-        .onAppear {
-            withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) {
-                glowPulse = true
-            }
         }
     }
 
@@ -65,10 +51,7 @@ struct AlbumArtView: View {
             .resizable()
             .clipped()
             .clipShape(
-                RoundedRectangle(
-                    cornerRadius: Defaults[.cornerRadiusScaling]
-                        ? MusicPlayerImageSizes.cornerRadiusInset.opened
-                        : MusicPlayerImageSizes.cornerRadiusInset.closed)
+                RoundedRectangle(cornerRadius: cornerRadius)
             )
             .aspectRatio(1, contentMode: .fit)
             .scaleEffect(x: 1.3, y: 1.4)
@@ -78,30 +61,16 @@ struct AlbumArtView: View {
     }
 
     private var albumArtButton: some View {
-        ZStack {
-            Button {
-                musicManager.openMusicApp()
-            } label: {
-                ZStack(alignment:.bottomTrailing) {
-                    albumArtImage
-                    appIconOverlay
-                }
+        Button {
+            musicManager.openMusicApp()
+        } label: {
+            ZStack(alignment: .bottomTrailing) {
+                albumArtImage
+                appIconOverlay
             }
-            .buttonStyle(PlainButtonStyle())
-            .scaleEffect(musicManager.isPlaying ? 1 : 0.85)
-            
-            albumArtDarkOverlay
         }
+        .buttonStyle(PlainButtonStyle())
     }
-
-    private var albumArtDarkOverlay: some View {
-        Rectangle()
-            .aspectRatio(1, contentMode: .fit)
-            .foregroundColor(Color.black)
-            .opacity(musicManager.isPlaying ? 0 : 0.8)
-            .blur(radius: 50)
-    }
-                
 
     private var albumArtImage: some View {
         Image(nsImage: musicManager.albumArt)
@@ -110,10 +79,7 @@ struct AlbumArtView: View {
             .matchedGeometryEffect(id: "albumArt", in: albumArtNamespace)
             .clipped()
             .clipShape(
-                RoundedRectangle(
-                    cornerRadius: Defaults[.cornerRadiusScaling]
-                        ? MusicPlayerImageSizes.cornerRadiusInset.opened
-                        : MusicPlayerImageSizes.cornerRadiusInset.closed)
+                RoundedRectangle(cornerRadius: cornerRadius)
             )
     }
 
@@ -133,8 +99,7 @@ struct AlbumArtView: View {
 
 struct MusicControlsView: View {
     @ObservedObject var musicManager = MusicManager.shared
-        @EnvironmentObject var vm: BoringViewModel
-        @ObservedObject var webcamManager = WebcamManager.shared
+    @EnvironmentObject var vm: BoringViewModel
     @State private var sliderValue: Double = 0
     @State private var dragging: Bool = false
     @State private var lastDragged: Date = .distantPast
@@ -250,8 +215,8 @@ struct MusicControlsView: View {
         )
         let padded = slotConfig.padded(to: sanitizedLimit, filler: .none)
         let result = Array(padded.prefix(sanitizedLimit))
-        // If calendar and camera are both visible alongside music, hide the edge slots
-        let shouldHideEdges = Defaults[.showCalendar] && Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
+        // Edge slot hiding was used when camera was visible; camera is now removed
+        let shouldHideEdges = false
         if shouldHideEdges && result.count >= 5 {
             return Array(result.dropFirst().dropLast())
         }
@@ -442,7 +407,6 @@ struct VolumeControlView: View {
 
 struct NotchHomeView: View {
     @EnvironmentObject var vm: BoringViewModel
-    @ObservedObject var webcamManager = WebcamManager.shared
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     let albumArtNamespace: Namespace.ID
@@ -452,30 +416,18 @@ struct NotchHomeView: View {
             .transition(.opacity)
     }
 
-    private var shouldShowCamera: Bool {
-        Defaults[.showMirror] && webcamManager.cameraAvailable && vm.isCameraExpanded
-    }
-
     private var mainContent: some View {
-        HStack(alignment: .top, spacing: (shouldShowCamera && Defaults[.showCalendar]) ? 10 : 15) {
+        HStack(alignment: .top, spacing: 15) {
             MusicPlayerView(albumArtNamespace: albumArtNamespace)
 
             if Defaults[.showCalendar] {
                 CalendarView()
-                    .frame(width: shouldShowCamera ? 170 : 215)
+                    .frame(width: 215)
                     .onHover { isHovering in
                         vm.isHoveringCalendar = isHovering
                     }
                     .environmentObject(vm)
                     .transition(.opacity)
-            }
-
-            if shouldShowCamera {
-                CameraPreviewView(webcamManager: webcamManager)
-                    .scaledToFit()
-                    .opacity(vm.notchState == .closed ? 0 : 1)
-                    .blur(radius: vm.notchState == .closed ? 20 : 0)
-                    .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.76, blendDuration: 0), value: shouldShowCamera)
             }
         }
         .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)), removal: .opacity))

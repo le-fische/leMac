@@ -450,7 +450,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        _ = BluetoothActivityManager.shared
         _ = ClipboardHistoryManager.shared
         _ = WeatherManager.shared
 

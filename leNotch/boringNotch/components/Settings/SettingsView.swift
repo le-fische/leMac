@@ -695,12 +695,12 @@ struct Media: View {
 
             Section {
                 Defaults.Toggle(key: .enableExpandedVisualizerGlow) {
-                    Text("Expanded visualizer glow / pulse")
+                    Text("Album edge glow / beat pulse")
                 }
             } header: {
                 Text("Audio Visualizer")
             } footer: {
-                Text("Adds a color-matched audio-reactive ambient glow around album art in the expanded notch. Disable if visual pulsing is disturbing.")
+                Text("Adds an edge-matched ambient backlight around album art in both expanded and minimized notch views that pulses dynamically to real music beats and audio accents. Disable if visual pulsing is disturbing.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -1194,9 +1194,6 @@ struct Appearance: View {
                 Defaults.Toggle(key: .showWeatherInHeader) {
                     Text("Show weather in notch header")
                 }
-                Defaults.Toggle(key: .enableBluetoothLiveActivity) {
-                    Text("Bluetooth connection Live Activity")
-                }
                 Defaults.Toggle(key: .enablePomodoroTimer) {
                     Text("Timer & Pomodoro in notch")
                 }
@@ -1397,16 +1394,6 @@ struct Appearance: View {
             }
 
             Section {
-                Defaults.Toggle(key: .showMirror) {
-                    Text("Enable boring mirror")
-                }
-                    .disabled(!checkVideoInput())
-                Picker("Mirror shape", selection: $mirrorShape) {
-                    Text("Circle")
-                        .tag(MirrorShapeEnum.circle)
-                    Text("Square")
-                        .tag(MirrorShapeEnum.rectangle)
-                }
                 Defaults.Toggle(key: .showNotHumanFace) {
                     Text("Show cool face animation while inactive")
                 }
@@ -1418,14 +1405,6 @@ struct Appearance: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Appearance")
-    }
-
-    func checkVideoInput() -> Bool {
-        if AVCaptureDevice.default(for: .video) != nil {
-            return true
-        }
-
-        return false
     }
 }
 

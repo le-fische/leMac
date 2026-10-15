@@ -10,6 +10,7 @@
 
 import AppKit
 import Cocoa
+import Defaults
 import SwiftUI
 
 class AudioSpectrum: NSView {
@@ -156,6 +157,41 @@ struct AudioSpectrumView: NSViewRepresentable {
     }
 }
 
+// MARK: - Beat-Reactive Edge Glow View
+
+struct AlbumEdgeGlowView: View {
+    @ObservedObject var audioMonitor = SystemAudioMonitor.shared
+    @ObservedObject var musicManager = MusicManager.shared
+    let cornerRadius: CGFloat
+    let isMinimized: Bool
+
+    var body: some View {
+        if Defaults[.enableExpandedVisualizerGlow] && musicManager.isPlaying {
+            let beat = CGFloat(audioMonitor.beatLevel)
+            let bass = CGFloat(audioMonitor.bandLevels.bass)
+            let scale: CGFloat = isMinimized
+                ? (1.06 + beat * 0.12)
+                : (1.04 + beat * 0.08 + bass * 0.04)
+            let blurRadius: CGFloat = isMinimized
+                ? (3.0 + beat * 3.5)
+                : (10.0 + beat * 8.0 + bass * 4.0)
+            let opacity: Double = isMinimized
+                ? Double(0.40 + beat * 0.45)
+                : Double(0.45 + beat * 0.40)
+
+            Image(nsImage: musicManager.albumArt)
+                .resizable()
+                .aspectRatio(1, contentMode: .fit)
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                .scaleEffect(scale)
+                .blur(radius: blurRadius)
+                .opacity(opacity)
+                .animation(.easeOut(duration: 0.08), value: beat)
+                .allowsHitTesting(false)
+        }
+    }
+}
+
 #Preview {
     AudioSpectrumView(
         isPlaying: .constant(true),
@@ -164,3 +200,4 @@ struct AudioSpectrumView: NSViewRepresentable {
     .frame(width: 16, height: 20)
     .padding()
 }
+

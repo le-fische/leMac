@@ -137,9 +137,8 @@ extension Defaults.Keys {
         "musicControlSlotLimit",
         default: MusicControlButton.defaultLayout.count
     )
-    static let enableExpandedVisualizerGlow = Key<Bool>("enableExpandedVisualizerGlow", default: false)
+    static let enableExpandedVisualizerGlow = Key<Bool>("enableExpandedVisualizerGlow", default: true)
     static let showWeatherInHeader = Key<Bool>("showWeatherInHeader", default: true)
-    static let enableBluetoothLiveActivity = Key<Bool>("enableBluetoothLiveActivity", default: true)
     static let enablePomodoroTimer = Key<Bool>("enablePomodoroTimer", default: true)
     
     // MARK: Battery
