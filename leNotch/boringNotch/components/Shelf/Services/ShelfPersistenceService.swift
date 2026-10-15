@@ -21,7 +21,12 @@ final class ShelfPersistenceService {
     private init() {
         let fm = FileManager.default
         let support = try? fm.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-        let dir = (support ?? fm.temporaryDirectory).appendingPathComponent("boringNotch", isDirectory: true).appendingPathComponent("Shelf", isDirectory: true)
+        let base = support ?? fm.temporaryDirectory
+        let oldDir = base.appendingPathComponent("boringNotch", isDirectory: true).appendingPathComponent("Shelf", isDirectory: true)
+        let dir = base.appendingPathComponent("leNotch", isDirectory: true).appendingPathComponent("Shelf", isDirectory: true)
+        if fm.fileExists(atPath: oldDir.path) && !fm.fileExists(atPath: dir.path) {
+            try? fm.moveItem(at: oldDir, to: dir)
+        }
         try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
         fileURL = dir.appendingPathComponent("items.json")
         encoder.outputFormatting = [.prettyPrinted]
