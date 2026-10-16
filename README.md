@@ -87,21 +87,31 @@ A 100% free, native macOS radial app launcher and window switcher with hold-to-n
 
 ---
 
-## 📥 How to Download
+## 📥 Direct App Downloads (.dmg / .zip)
 
-You can clone the entire monorepo or download individual projects:
+> **No Terminal or Xcode needed!** Download ready-to-run macOS app packages directly from [GitHub Releases](https://github.com/le-fische/leMac/releases):
 
-### 1. Download Entire Repository
+| App | Direct Download | Description | Requirements |
+| :--- | :--- | :--- | :--- |
+| **leNotch** 🪽 | 💿 [**leNotch.dmg**](https://github.com/le-fische/leMac/releases/latest/download/leNotch.dmg) · 📦 [.zip](https://github.com/le-fische/leMac/releases/latest/download/leNotch.zip) | Notch & Dynamic Island with 60 FPS audio glow | macOS 14.0+ |
+
+---
+
+## 💻 Developer Setup & Source Code
+
+If you prefer building from source or cloning the repository:
+
+### 1. Clone Entire Repository
 Clone all `leMac` tools at once:
 ```bash
 git clone https://github.com/le-fische/leMac.git
 ```
-Or download the repository archive directly:
+Or download the repository source directly:
 - [Download leMac ZIP](https://github.com/le-fische/leMac/archive/refs/heads/main.zip)
 
 ---
 
-### 2. Download Individual Projects
+### 2. Download Individual Projects (Sparse Clone)
 
 If you only need a specific utility without downloading the full repository, you can download any project using sparse clone:
 

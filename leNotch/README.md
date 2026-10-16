@@ -43,17 +43,35 @@ Turn your MacBook's notch into an interactive Dynamic Island featuring a 60 FPS 
 
 ---
 
-## 🛠️ Requirements & Building
+## 📥 Download & Installation
 
-- **macOS**: 14.0 Sonoma or later
-- **Architecture**: Apple Silicon (M1/M2/M3/M4) & Intel
-- **Xcode**: Xcode 15 or later
+### Quick Install (No Terminal or Xcode Needed!)
 
-### Building from Source
+1. **Download the latest release**:
+   - 💿 [**Download leNotch.dmg**](https://github.com/le-fische/leMac/releases/latest/download/leNotch.dmg) *(Drag & Drop Installer)*
+   - 📦 [**Download leNotch.zip**](https://github.com/le-fische/leMac/releases/latest/download/leNotch.zip) *(Portable Archive)*
+2. **Install**:
+   - Open `leNotch.dmg` and drag **leNotch** into your **Applications** folder.
+3. **Launch**:
+   - Open **leNotch** from Applications, Launchpad, or Spotlight.
+
+> **Tip for First Launch**: Because leNotch is an open-source indie utility signed ad-hoc, if macOS Gatekeeper displays an "unidentified developer" prompt on first launch, simply right-click (or Control-click) `leNotch.app` in `/Applications` and select **Open**, then click **Open**. Alternatively, run:
+> ```bash
+> xattr -cr /Applications/leNotch.app
+> ```
+
+---
+
+## 🛠️ Building from Source (Developers Only)
+
+If you'd like to build leNotch from source or contribute changes:
+
+- **macOS**: 14.0 Sonoma or later (Apple Silicon & Intel)
+- **Xcode**: 15.0 or later
 
 ```bash
 cd leNotch
-xcodebuild -scheme boringNotch -configuration Release build CODE_SIGNING_ALLOWED=NO
+./package_release.sh
 ```
 
 Or open `boringNotch.xcodeproj` in Xcode and hit **Run** (`⌘R`).
