@@ -20,6 +20,12 @@ cp "$DIR/.build/release/OpenLaunchy" "$MACOS/OpenLaunchy"
 chmod +x "$MACOS/OpenLaunchy"
 cp "$DIR/Resources/Info.plist" "$CONTENTS/Info.plist"
 
+if [ -f "$DIR/Resources/AppIcon.icns" ]; then
+    cp "$DIR/Resources/AppIcon.icns" "$RESOURCES/AppIcon.icns"
+elif [ -f "$DIR/AppIcon.icns" ]; then
+    cp "$DIR/AppIcon.icns" "$RESOURCES/AppIcon.icns"
+fi
+
 echo "==> Signing app bundle with ad-hoc signature..."
 codesign --force --deep --sign - "$DIR/dist/$APP_NAME"
 

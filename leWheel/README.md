@@ -41,14 +41,44 @@ Unlike proprietary launchers that impose 5-item slot limits, 300-switch trial pa
 
 ---
 
-## 🛠️ Build & Installation
+## 📥 Download & Installation
+
+### Quick Install (No Terminal or Xcode Needed!)
+
+1. **Download the latest release**:
+   - 💿 [**Download leWheel.dmg**](https://github.com/le-fische/leMac/releases/latest/download/leWheel.dmg) *(Drag & Drop Installer)*
+   - 📦 [**Download leWheel.zip**](https://github.com/le-fische/leMac/releases/latest/download/leWheel.zip) *(Portable Archive)*
+2. **Install**:
+   - Open `leWheel.dmg` and drag **leWheel** into your **Applications** folder.
+3. **Launch**:
+   - Open **leWheel** from Applications, Launchpad, or Spotlight.
+
+> **Tip for First Launch**: Because `leWheel` is an open-source indie utility signed ad-hoc, if macOS Gatekeeper displays an "unidentified developer" prompt on first launch, simply right-click (or Control-click) `leWheel.app` in `/Applications` and select **Open**, then click **Open**. Alternatively, run:
+> ```bash
+> xattr -cr /Applications/leWheel.app
+> ```
+
+---
+
+## 🛠️ Build from Source & Packaging
 
 ### Requirements
 * macOS 14.0+ (Sonoma, Sequoia, or later)
 * Apple Silicon (M1/M2/M3/M4) or Intel
 * Xcode 15+ / Swift 5.10+ command line tools
 
-### 1. Build and Install via Script
+### 1. Package DMG & ZIP Release Bundles
+To compile and package drag-and-drop `.dmg` and `.zip` releases with SHA256 checksums:
+```bash
+cd /Users/le/Documents/Projects/leMac/leWheel
+./package_release.sh
+```
+Output files will be generated in `leWheel/dist/`:
+- `leWheel.dmg` (drag-and-drop installer with `/Applications` symlink)
+- `leWheel.zip` (portable archive)
+- `leWheel-checksums.txt` (SHA256 checksums)
+
+### 2. Build and Install Directly via Script
 From the `leWheel` project directory:
 ```bash
 cd /Users/le/Documents/Projects/leMac/leWheel
@@ -60,7 +90,7 @@ cd /Users/le/Documents/Projects/leMac/leWheel
 open /Applications/leWheel.app
 ```
 
-### 2. Build via Swift Package Manager
+### 3. Build via Swift Package Manager
 ```bash
 cd /Users/le/Documents/Projects/leMac/leWheel
 swift build -c release

@@ -3,5 +3,6 @@
 /Packages
 xcuserdata/
 DerivedData/
-dist/*.app
-!dist/
+dist/
+*.dmg
+*.zip
