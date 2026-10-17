@@ -53,6 +53,7 @@ build/
 *.xcarchive
 *.dSYM
 dist/
+**/dist/
 *.dmg
 *.zip
 *.key

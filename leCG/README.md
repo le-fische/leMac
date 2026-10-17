@@ -45,6 +45,23 @@ All styles are unified into **one single icon capsule** with CPU on top and GPU 
 | **Stacked Numbers** | Clean two-row numeric text: CPU on top row, GPU on bottom row. | `┌ C: 14% ┐`<br>`└ G:  5% ┘` |
 | **Side-by-Side Dual Sparklines** | Side-by-side mode (preserved as an option). | `[ C ∿∿ ] [ G ∿_ ]` |
 
+## 📥 Download & Installation
+
+### Quick Install (No Terminal or Xcode Needed!)
+
+1. **Download the latest release**:
+   - 💿 [**Download leCG.dmg**](https://github.com/le-fische/leMac/releases/latest/download/leCG.dmg) *(Drag & Drop Installer)*
+   - 📦 [**Download leCG.zip**](https://github.com/le-fische/leMac/releases/latest/download/leCG.zip) *(Portable Archive)*
+2. **Install**:
+   - Open `leCG.dmg` and drag **leCG** into your **Applications** folder.
+3. **Launch**:
+   - Open **leCG** from Applications, Launchpad, or Spotlight.
+
+> **Tip for First Launch**: Because leCG is an open-source indie utility signed ad-hoc, if macOS Gatekeeper displays an "unidentified developer" prompt on first launch, simply right-click (or Control-click) `leCG.app` in `/Applications` and select **Open**, then click **Open**. Alternatively, run:
+> ```bash
+> xattr -cr /Applications/leCG.app
+> ```
+
 ---
 
 ## Quick Start
