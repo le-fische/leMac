@@ -6,6 +6,25 @@ Inspired by utilities like Ice and Bartender, **leMinibar** declutters your MacB
 
 ---
 
+## 📥 Download & Installation
+
+### Quick Install (No Terminal or Xcode Needed!)
+
+1. **Download the latest release**:
+   - 💿 [**Download leMinibar.dmg**](https://github.com/le-fische/leMac/releases/latest/download/leMinibar.dmg) *(Drag & Drop Installer)*
+   - 📦 [**Download leMinibar.zip**](https://github.com/le-fische/leMac/releases/latest/download/leMinibar.zip) *(Portable Archive)*
+2. **Install**:
+   - Open `leMinibar.dmg` and drag **leMinibar** into your **Applications** folder.
+3. **Launch**:
+   - Open **leMinibar** from Applications, Launchpad, or Spotlight.
+
+> **Tip for First Launch**: Because `leMinibar` is an open-source indie utility signed ad-hoc, if macOS Gatekeeper displays an "unidentified developer" prompt on first launch, simply right-click (or Control-click) `leMinibar.app` in `/Applications` and select **Open**, then click **Open**. Alternatively, run:
+> ```bash
+> xattr -cr /Applications/leMinibar.app
+> ```
+
+---
+
 ## ✨ Features
 
 - **Single Dot Control (1:1 Ice UX)**: 
@@ -24,28 +43,26 @@ Inspired by utilities like Ice and Bartender, **leMinibar** declutters your MacB
 
 ---
 
-## 🛠️ Building & Running
+## 🛠️ Building & Packaging (Developers)
 
 `leMinibar` can be compiled in seconds using native Swift:
 
+### Compile Standalone App
 ```bash
 cd leMinibar
 chmod +x build.sh
 ./build.sh
-```
-
-This compiles a standalone `leMinibar.app` bundle and signs it with an ad-hoc certificate. 
-
-To run:
-```bash
 open leMinibar.app
 ```
 
-To install permanently into Applications:
+### Package Release DMG and ZIP
+To package the app into a drag-and-drop `.dmg` installer and `.zip` archive with SHA256 checksums:
 ```bash
-cp -R leMinibar.app /Applications/
-open /Applications/leMinibar.app
+cd leMinibar
+chmod +x package_release.sh
+./package_release.sh
 ```
+This generates `leMinibar.dmg`, `leMinibar.zip`, and `checksums.txt` in `leMinibar/dist/`.
 
 ---
 

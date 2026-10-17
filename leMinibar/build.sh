@@ -12,7 +12,9 @@ mkdir -p "$RESOURCES_DIR"
 
 cp "$DIR/Info.plist" "$APP_BUNDLE/Contents/Info.plist"
 
-if [ -f "/private/tmp/minibar.iconset/icon_512x512.png" ]; then
+if [ -f "$DIR/Resources/AppIcon.icns" ]; then
+    cp "$DIR/Resources/AppIcon.icns" "$RESOURCES_DIR/AppIcon.icns"
+elif [ -f "/private/tmp/minibar.iconset/icon_512x512.png" ]; then
     iconutil -c icns /private/tmp/minibar.iconset -o "$RESOURCES_DIR/AppIcon.icns" 2>/dev/null || true
 fi
 

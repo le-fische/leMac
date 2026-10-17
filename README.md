@@ -94,6 +94,8 @@ A 100% free, native macOS radial app launcher and window switcher with hold-to-n
 | App | Direct Download | Description | Requirements |
 | :--- | :--- | :--- | :--- |
 | **leNotch** 🪽 | 💿 [**leNotch.dmg**](https://github.com/le-fische/leMac/releases/latest/download/leNotch.dmg) · 📦 [.zip](https://github.com/le-fische/leMac/releases/latest/download/leNotch.zip) | Notch & Dynamic Island with 60 FPS audio glow | macOS 14.0+ |
+| **leMinibar** 🍸 | 💿 [**leMinibar.dmg**](https://github.com/le-fische/leMac/releases/latest/download/leMinibar.dmg) · 📦 [.zip](https://github.com/le-fische/leMac/releases/latest/download/leMinibar.zip) | 1:1 Ice replica zero-permission menu bar minimizer | macOS 13.0+ |
+| **leCG** ⚡️ | 💿 [**leCG.dmg**](https://github.com/le-fische/leMac/releases/latest/download/leCG.dmg) · 📦 [.zip](https://github.com/le-fische/leMac/releases/latest/download/leCG.zip) | Real-time CPU, GPU, & thermal menu bar monitor | macOS 14.0+ |
 | **leFan** 🌪️ | 💿 [**leFan.dmg**](https://github.com/le-fische/leMac/releases/latest/download/leFan.dmg) · 📦 [.zip](https://github.com/le-fische/leMac/releases/latest/download/leFan.zip) | Modern unlocked fan controller with custom curves | macOS 14.0+ |
 | **leWheel** 🎡 | 💿 [**leWheel.dmg**](https://github.com/le-fische/leMac/releases/latest/download/leWheel.dmg) · 📦 [.zip](https://github.com/le-fische/leMac/releases/latest/download/leWheel.zip) | Radial app launcher & switcher with flick gestures | macOS 14.0+ |
 
