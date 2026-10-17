@@ -57,7 +57,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             button.target = self
             button.action = #selector(dotButtonClicked)
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
-            button.toolTip = "leMinibar: Click to hide/show apps. Right-click for options."
+            button.toolTip = "leMinibar: Click to hide/show apps. Right-click or Option-click for settings & updates."
         }
         
         // 2. The Spacer (100% invisible delimiter)
@@ -71,7 +71,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func dotButtonClicked() {
         let event = NSApp.currentEvent
         let isRightClick = event?.type == .rightMouseUp ||
-            (event?.type == .leftMouseUp && event?.modifierFlags.contains(.control) == true)
+            (event?.type == .leftMouseUp && (event?.modifierFlags.contains(.control) == true || event?.modifierFlags.contains(.option) == true))
         
         if isRightClick {
             showContextMenu()
@@ -317,7 +317,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         """
         alert.alertStyle = .informational
         alert.addButton(withTitle: "Close")
-        alert.runModal()
+        alert.addButton(withTitle: "Check for Updates…")
+        let response = alert.runModal()
+        if response == .alertSecondButtonReturn {
+            checkForUpdates()
+        }
     }
     
     @objc private func quitApp() {
