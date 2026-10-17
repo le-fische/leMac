@@ -62,9 +62,10 @@ if [ "$SKIP_BUILD" = false ]; then
     CONTENTS="$COMPILED_APP/Contents"
     MACOS="$CONTENTS/MacOS"
     RESOURCES="$CONTENTS/Resources"
+    FRAMEWORKS="$CONTENTS/Frameworks"
     
     rm -rf "$COMPILED_APP"
-    mkdir -p "$MACOS" "$RESOURCES"
+    mkdir -p "$MACOS" "$RESOURCES" "$FRAMEWORKS"
     
     cp "$COMPILED_BIN" "$MACOS/OpenLaunchy"
     chmod +x "$MACOS/OpenLaunchy"
@@ -75,6 +76,11 @@ if [ "$SKIP_BUILD" = false ]; then
     elif [ -f "$SCRIPT_DIR/AppIcon.icns" ]; then
         cp "$SCRIPT_DIR/AppIcon.icns" "$RESOURCES/AppIcon.icns"
     fi
+    
+    if [ -d "$SCRIPT_DIR/.build/release/Sparkle.framework" ]; then
+        cp -R "$SCRIPT_DIR/.build/release/Sparkle.framework" "$FRAMEWORKS/"
+    fi
+    install_name_tool -add_rpath "@loader_path/../Frameworks" "$MACOS/OpenLaunchy" 2>/dev/null || true
     
     # Backwards compatibility symlink
     rm -rf "$DIST_DIR/OpenLaunchy.app"
@@ -129,6 +135,16 @@ echo "--> Generating checksums..."
     shasum -a 256 "$APP_NAME.dmg" "$APP_NAME.zip" > checksums.txt
     cp checksums.txt "${APP_NAME}-checksums.txt"
 )
+
+# 4. Sign update with Sparkle and update appcast.xml
+SIGN_SCRIPT="$SCRIPT_DIR/Configuration/sparkle/sign_update.swift"
+APPCAST_FILE="$SCRIPT_DIR/appcast.xml"
+if [ -f "$SIGN_SCRIPT" ]; then
+    VERSION="$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$TARGET_APP/Contents/Info.plist" 2>/dev/null || echo "1.0.0")"
+    BUILD_NUM="$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$TARGET_APP/Contents/Info.plist" 2>/dev/null || echo "1")"
+    echo "--> Signing Sparkle update archive and updating appcast (v$VERSION build $BUILD_NUM)..."
+    "$SIGN_SCRIPT" --archive "$ZIP_OUTPUT" --version "$VERSION" --build "$BUILD_NUM" --appcast "$APPCAST_FILE"
+fi
 
 echo ""
 echo "=== Packaging Complete! ==="

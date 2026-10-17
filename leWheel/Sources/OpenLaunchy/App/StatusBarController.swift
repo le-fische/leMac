@@ -13,6 +13,9 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     }
     
     public func setup() {
+        // Initialize Sparkle auto-updater controller
+        _ = SparkleUpdater.shared
+        
         if ConfigManager.shared.settings.hideMenuBarIcon {
             return
         }
@@ -64,6 +67,11 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         let settingsItem = NSMenuItem(title: "Settings...", action: #selector(openPreferences), keyEquivalent: ",")
         settingsItem.target = self
         menu.addItem(settingsItem)
+        
+        // 2. Check for Updates...
+        let updateItem = NSMenuItem(title: "Check for Updates...", action: #selector(checkForUpdates), keyEquivalent: "")
+        updateItem.target = self
+        menu.addItem(updateItem)
         
         menu.addItem(NSMenuItem.separator())
         
@@ -170,6 +178,10 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         self.preferencesWindow = window
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+    
+    @objc private func checkForUpdates() {
+        SparkleUpdater.shared.checkForUpdates()
     }
     
     @objc private func quitApp() {

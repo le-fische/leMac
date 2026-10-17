@@ -32,5 +32,15 @@
     <true/>
     <key>NSAppleEventsUsageDescription</key>
     <string>OpenLaunchy requires automation permissions to switch and launch applications seamlessly.</string>
+    <key>SUFeedURL</key>
+    <string>https://raw.githubusercontent.com/le-fische/leMac/main/leWheel/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>a24A4iOxvUr/i64Tjz3q8qraXdawXglnVQwKOV1DZMw=</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
+    <key>SUScheduledCheckInterval</key>
+    <integer>86400</integer>
+    <key>SUEnableInstallerLauncherService</key>
+    <true/>
 </dict>
 </plist>

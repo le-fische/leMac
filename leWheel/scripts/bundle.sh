@@ -26,6 +26,13 @@ elif [ -f "$DIR/AppIcon.icns" ]; then
     cp "$DIR/AppIcon.icns" "$RESOURCES/AppIcon.icns"
 fi
 
+FRAMEWORKS="$CONTENTS/Frameworks"
+mkdir -p "$FRAMEWORKS"
+if [ -d "$DIR/.build/release/Sparkle.framework" ]; then
+    cp -R "$DIR/.build/release/Sparkle.framework" "$FRAMEWORKS/"
+fi
+install_name_tool -add_rpath "@loader_path/../Frameworks" "$MACOS/OpenLaunchy" 2>/dev/null || true
+
 echo "==> Signing app bundle with ad-hoc signature..."
 codesign --force --deep --sign - "$DIR/dist/$APP_NAME"
 

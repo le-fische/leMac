@@ -421,6 +421,27 @@ public struct SettingsView: View {
             }
             .clipShape(RoundedRectangle(cornerRadius: 10))
             
+            // Software Updates
+            VStack(spacing: 1) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Software Updates")
+                            .fontWeight(.medium)
+                        Text("Automatically checks daily via GitHub Releases")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    Button("Check Now…") {
+                        SparkleUpdater.shared.checkForUpdates()
+                    }
+                    .controlSize(.small)
+                }
+                .padding()
+                .background(Color.secondary.opacity(0.08))
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            
             // Manual Quit Button
             HStack {
                 Spacer()
@@ -449,6 +470,21 @@ public struct SettingsView: View {
             Text("leWheel")
                 .font(.title)
                 .fontWeight(.bold)
+            
+            let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+            let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+            Text("Version \(version) (Build \(build))")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            Button(action: {
+                SparkleUpdater.shared.checkForUpdates()
+            }) {
+                Label("Check for Updates…", systemImage: "arrow.triangle.2.circlepath")
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.regular)
+            .padding(.top, 2)
             
             Text("100% Free & Open-Source Radial Launcher")
                 .font(.subheadline)

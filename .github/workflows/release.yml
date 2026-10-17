@@ -49,11 +49,15 @@ jobs:
         run: |
           chmod +x ./leWheel/package_release.sh
           ./leWheel/package_release.sh
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
 
       - name: Build & Package leCG DMG and ZIP
         run: |
           chmod +x ./leCG/package_release.sh
           ./leCG/package_release.sh
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
 
       - name: Build & Package leMinibar DMG and ZIP
         run: |
@@ -71,8 +75,20 @@ jobs:
             git add leNotch/appcast.xml
             APPCAST_UPDATED=1
           fi
+          if git status --porcelain | grep -q "leFan/appcast.xml"; then
+            git add leFan/appcast.xml
+            APPCAST_UPDATED=1
+          fi
           if git status --porcelain | grep -q "leMinibar/appcast.xml"; then
             git add leMinibar/appcast.xml
+            APPCAST_UPDATED=1
+          fi
+          if git status --porcelain | grep -q "leWheel/appcast.xml"; then
+            git add leWheel/appcast.xml
+            APPCAST_UPDATED=1
+          fi
+          if git status --porcelain | grep -q "leCG/appcast.xml"; then
+            git add leCG/appcast.xml
             APPCAST_UPDATED=1
           fi
           if [ "$APPCAST_UPDATED" -eq 1 ]; then
@@ -96,12 +112,15 @@ jobs:
             leFan/dist/leFan.dmg
             leFan/dist/leFan.zip
             leFan/dist/leFan-checksums.txt
+            leFan/appcast.xml
             leWheel/dist/leWheel.dmg
             leWheel/dist/leWheel.zip
             leWheel/dist/leWheel-checksums.txt
+            leWheel/appcast.xml
             leCG/dist/leCG.dmg
             leCG/dist/leCG.zip
             leCG/dist/leCG-checksums.txt
+            leCG/appcast.xml
             leMinibar/dist/leMinibar.dmg
             leMinibar/dist/leMinibar.zip
             leMinibar/dist/leMinibar-checksums.txt
