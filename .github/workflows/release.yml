@@ -42,6 +42,8 @@ jobs:
         run: |
           chmod +x ./leFan/package_release.sh
           ./leFan/package_release.sh
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
 
       - name: Build & Package leWheel DMG and ZIP
         run: |
@@ -57,14 +59,24 @@ jobs:
         run: |
           chmod +x ./leMinibar/package_release.sh
           ./leMinibar/package_release.sh
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
 
       - name: Commit & Push Updated Appcast
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          APPCAST_UPDATED=0
           if git status --porcelain | grep -q "leNotch/appcast.xml"; then
             git add leNotch/appcast.xml
-            git commit -m "chore(release): update appcast.xml for ${{ github.event.inputs.tag_name || github.ref_name }}"
+            APPCAST_UPDATED=1
+          fi
+          if git status --porcelain | grep -q "leMinibar/appcast.xml"; then
+            git add leMinibar/appcast.xml
+            APPCAST_UPDATED=1
+          fi
+          if [ "$APPCAST_UPDATED" -eq 1 ]; then
+            git commit -m "chore(release): update appcast feeds for ${{ github.event.inputs.tag_name || github.ref_name }}"
             git push origin main
           fi
 
@@ -93,5 +105,6 @@ jobs:
             leMinibar/dist/leMinibar.dmg
             leMinibar/dist/leMinibar.zip
             leMinibar/dist/leMinibar-checksums.txt
+            leMinibar/appcast.xml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

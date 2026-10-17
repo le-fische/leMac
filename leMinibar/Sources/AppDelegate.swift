@@ -1,11 +1,13 @@
 import Cocoa
 import ServiceManagement
+import Sparkle
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var dotItem: NSStatusItem!
     private var spacerItem: NSStatusItem!
     private var autoCollapseTimer: Timer?
     private var isCollapsed: Bool = false
+    private var updaterController: SPUStandardUpdaterController!
     
     private let dotAutosaveName = "leMinibar_Dot"
     private let spacerAutosaveName = "leMinibar_Spacer"
@@ -14,6 +16,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory) // Pure menu-bar accessory app (no Dock icon)
+        
+        updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
         
         setupInitialPositions()
         setupStatusItems()
@@ -199,6 +203,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         menu.addItem(NSMenuItem.separator())
         
+        // Check for Updates
+        let updateItem = NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "")
+        updateItem.target = self
+        menu.addItem(updateItem)
+        
         // Launch at Login
         let loginItem = NSMenuItem(title: "Launch at Login", action: #selector(toggleLaunchAtLogin(_:)), keyEquivalent: "")
         loginItem.target = self
@@ -236,6 +245,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             preferences.dotSize = size
             updateDotIcon()
         }
+    }
+    
+    @objc private func checkForUpdates() {
+        NSApp.activate(ignoringOtherApps: true)
+        updaterController.checkForUpdates(nil)
     }
     
     @objc private func toggleLaunchAtLogin(_ sender: NSMenuItem) {
