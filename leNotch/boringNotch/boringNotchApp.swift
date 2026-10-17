@@ -285,6 +285,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Enforce single instance across the system
+        let currentPID = ProcessInfo.processInfo.processIdentifier
+        let bundleID = Bundle.main.bundleIdentifier ?? "theboringteam.boringnotch"
+        let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
+        if runningApps.contains(where: { $0.processIdentifier != currentPID }) {
+            NSLog("[leNotch] Another instance is already running (PID: %d). Terminating duplicate instance.", currentPID)
+            NSApp.terminate(nil)
+            return
+        }
 
         NotificationCenter.default.addObserver(
             self,
@@ -301,6 +310,47 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             ) { _ in
                 Task { @MainActor in
                     MusicManager.shared.forceUpdate()
+                }
+            }
+        )
+
+        appNotificationObservers.append(
+            NSWorkspace.shared.notificationCenter.addObserver(
+                forName: NSWorkspace.willSleepNotification,
+                object: nil,
+                queue: .main
+            ) { _ in
+                Task { @MainActor in
+                    MusicManager.shared.handleSystemSleep()
+                    SystemAudioMonitor.shared.handleSystemSleep()
+                }
+            }
+        )
+
+        appNotificationObservers.append(
+            NSWorkspace.shared.notificationCenter.addObserver(
+                forName: NSWorkspace.didWakeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor in
+                    MusicManager.shared.handleSystemWake()
+                    SystemAudioMonitor.shared.handleSystemWake()
+                    self?.adjustWindowPosition(changeAlpha: true)
+                    self?.setupDragDetectors()
+                }
+            }
+        )
+
+        appNotificationObservers.append(
+            NSWorkspace.shared.notificationCenter.addObserver(
+                forName: NSWorkspace.screensDidWakeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor in
+                    MusicManager.shared.handleSystemWake()
+                    self?.adjustWindowPosition(changeAlpha: true)
                 }
             }
         )

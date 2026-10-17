@@ -150,6 +150,23 @@ final class SystemAudioMonitor: ObservableObject {
         if isStrongBeat { isStrongBeat = false }
     }
 
+    func handleSystemSleep() {
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            await self.stopCapturing()
+        }
+    }
+
+    func handleSystemWake() {
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            self.stopHardwareTap()
+            if MusicManager.shared.isPlaying {
+                await self.startCapturing()
+            }
+        }
+    }
+
     // MARK: - Realtime Audio Frame Processing (CoreAudio Thread)
 
     private func processAudioSamples(floatPtr: UnsafePointer<Float>, count: Int) {

@@ -537,16 +537,37 @@ class MusicManager: ObservableObject {
         }
     }
 
+    @MainActor
+    func handleSystemSleep() {
+        debounceIdleTask?.cancel()
+        debounceIdleTask = nil
+        isPlaying = false
+        isPlayerIdle = true
+    }
+
+    @MainActor
+    func handleSystemWake() {
+        debounceIdleTask?.cancel()
+        debounceIdleTask = nil
+        forceUpdate()
+        if !isPlaying {
+            isPlayerIdle = true
+        }
+    }
+
+    @MainActor
     private func updateIdleState(state: Bool) {
         if state {
             isPlayerIdle = false
             debounceIdleTask?.cancel()
+            debounceIdleTask = nil
         } else {
             debounceIdleTask?.cancel()
-            debounceIdleTask = Task { [weak self] in
+            debounceIdleTask = Task { @MainActor [weak self] in
                 guard let self = self else { return }
                 try? await Task.sleep(for: .seconds(Defaults[.waitInterval]))
-                withAnimation {
+                guard !Task.isCancelled else { return }
+                withAnimation(.smooth) {
                     self.isPlayerIdle = !self.isPlaying
                 }
             }
@@ -685,7 +706,7 @@ class MusicManager: ObservableObject {
 
     func forceUpdate() {
         // Request immediate update from the active controller
-        Task { [weak self] in
+        Task { @MainActor [weak self] in
             guard let self = self else { return }
             if self.activeController?.isActive() == true {
                 if let youtubeController = self.activeController as? YouTubeMusicController {
@@ -694,9 +715,7 @@ class MusicManager: ObservableObject {
                     await self.activeController?.updatePlaybackInfo()
                 }
             } else {
-                await MainActor.run {
-                    self.setActiveControllerBasedOnPreference()
-                }
+                self.setActiveControllerBasedOnPreference()
             }
         }
     }
