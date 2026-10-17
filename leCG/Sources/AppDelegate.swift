@@ -1,14 +1,23 @@
 import AppKit
+import Sparkle
 
 public class AppDelegate: NSObject, NSApplicationDelegate, MenuControllerDelegate {
     private var statusItem: NSStatusItem!
     private var menuController: MenuController!
     private var refreshTimer: Timer?
     private var isSleeping: Bool = false
+    private var updaterController: SPUStandardUpdaterController?
     
     public func applicationDidFinishLaunching(_ notification: Notification) {
+        // Initialize Sparkle 2 Auto-Updater
+        updaterController = SPUStandardUpdaterController(
+            startingUpdater: true,
+            updaterDelegate: nil,
+            userDriverDelegate: nil
+        )
+        
         // Initialize menu controller
-        menuController = MenuController()
+        menuController = MenuController(updaterController: updaterController)
         menuController.delegate = self
         
         // Configure NSStatusItem

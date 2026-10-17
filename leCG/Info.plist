@@ -17,16 +17,28 @@
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
+    <string>1.0.0</string>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>LSMinimumSystemVersion</key>
-    <string>13.0</string>
+    <string>14.0</string>
     <key>LSUIElement</key>
     <true/>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
+    <key>SUFeedURL</key>
+    <string>https://raw.githubusercontent.com/le-fische/leMac/main/leCG/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>a24A4iOxvUr/i64Tjz3q8qraXdawXglnVQwKOV1DZMw=</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
+    <key>SUScheduledCheckInterval</key>
+    <integer>86400</integer>
+    <key>SUEnableDownloaderService</key>
+    <true/>
+    <key>SUEnableInstallerLauncherService</key>
+    <true/>
 </dict>
 </plist>

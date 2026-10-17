@@ -10,7 +10,9 @@ let package = Package(
         .executable(name: "leFan", targets: ["leFan"]),
         .executable(name: "lefan-helper", targets: ["lefan-helper"])
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.0")
+    ],
     targets: [
         .target(
             name: "SMCBridge",
@@ -26,7 +28,10 @@ let package = Package(
         ),
         .executableTarget(
             name: "leFan",
-            dependencies: ["SMCBridge"],
+            dependencies: [
+                "SMCBridge",
+                .product(name: "Sparkle", package: "Sparkle")
+            ],
             path: "Sources/leFan",
             linkerSettings: [
                 .linkedFramework("AppKit"),

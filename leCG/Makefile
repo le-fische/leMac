@@ -22,4 +22,4 @@ package:
 	./package_release.sh
 
 clean:
-	rm -rf $(APP_BUNDLE) $(APP_NAME) dist
+	rm -rf $(APP_BUNDLE) $(APP_NAME) dist .build

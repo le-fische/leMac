@@ -29,6 +29,7 @@ A lightweight, native macOS menu bar app for monitoring **CPU**, **GPU**, and **
   - **3 Color Themes**: Vibrant (Electric Cyan CPU / Tangerine GPU), Adaptive Monochrome (matches system theme), Dynamic Alert (Green → Orange → Red).
   - **Configurable Refresh Intervals**: 0.5s, 1.0s, 2.0s, or 5.0s.
   - **Launch at Login**: Native toggle via Apple's `SMAppService`.
+  - **Automated Client Updates**: Built-in Sparkle 2 client auto-updater with Ed25519 cryptographic signing and "Check for Updates…" in the menu.
 
 ---
 

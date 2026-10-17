@@ -19,6 +19,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
 
     public func applicationDidFinishLaunching(_ notification: Notification) {
         AppDelegate.shared = self
+        _ = SoftwareUpdater.shared
         setupMenuBar()
         setupPopover()
         observeAppState()
@@ -135,6 +136,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
             openMainWindow()
         }
         return true
+    }
+
+    public func checkForUpdates() {
+        SoftwareUpdater.shared.checkForUpdates()
     }
 
     // MARK: - NSWindowDelegate (Window Visibility Tracking)

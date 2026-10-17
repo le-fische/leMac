@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>leCG Updates</title>
+        <link>https://raw.githubusercontent.com/le-fische/leMac/main/leCG/appcast.xml</link>
+        <description>Automatic software update feed for leCG.</description>
+        <language>en</language>
+        <item>
+            <title>Version 1.0.0</title>
+            <pubDate>Sat, 17 Oct 2026 13:13:28 +0000</pubDate>
+            <sparkle:version>1</sparkle:version>
+            <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h2>leCG 1.0.0</h2>
+                <p>Maintenance release with performance and stability improvements.</p>
+            ]]></description>
+            <enclosure
+                url="https://github.com/le-fische/leMac/releases/download/v1.0.0/leCG.zip"
+                sparkle:edSignature="hncp3cVwCwz9yvAFlhq3DiFkpo/mhn50dFKGu9nWhv3xhDod8SQ50FGIW1UH2sJRqPnmwno2BIysBWTBgXSzBQ=="
+                length="1724052"
+                type="application/octet-stream" />
+        </item>
+    </channel>
+</rss>

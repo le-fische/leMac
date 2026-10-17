@@ -6,21 +6,24 @@ BUNDLE_DIR="${APP_NAME}.app"
 CONTENTS_DIR="${BUNDLE_DIR}/Contents"
 MACOS_DIR="${CONTENTS_DIR}/MacOS"
 RESOURCES_DIR="${CONTENTS_DIR}/Resources"
+FRAMEWORKS_DIR="${CONTENTS_DIR}/Frameworks"
 
-echo "==> Building ${APP_NAME} binary..."
-swiftc -O -target arm64-apple-macos14.0 \
-    -framework AppKit \
-    -framework IOKit \
-    -framework ServiceManagement \
-    Sources/*.swift \
-    -o "${APP_NAME}"
+echo "==> Building ${APP_NAME} binary via Swift Package Manager..."
+swift build -c release
 
 echo "==> Constructing ${BUNDLE_DIR} bundle..."
 rm -rf "${BUNDLE_DIR}"
 mkdir -p "${MACOS_DIR}"
 mkdir -p "${RESOURCES_DIR}"
+mkdir -p "${FRAMEWORKS_DIR}"
 
-mv "${APP_NAME}" "${MACOS_DIR}/${APP_NAME}"
+cp -f ".build/release/${APP_NAME}" "${MACOS_DIR}/${APP_NAME}"
+chmod +x "${MACOS_DIR}/${APP_NAME}"
+
+if [ -d ".build/release/Sparkle.framework" ]; then
+    cp -R ".build/release/Sparkle.framework" "${FRAMEWORKS_DIR}/"
+fi
+
 cp Info.plist "${CONTENTS_DIR}/Info.plist"
 
 if [ -f "AppIcon.icns" ]; then

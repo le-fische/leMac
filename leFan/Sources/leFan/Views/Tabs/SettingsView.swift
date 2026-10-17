@@ -2,6 +2,7 @@ import SwiftUI
 
 public struct SettingsView: View {
     @ObservedObject var appState: AppState
+    @ObservedObject private var updater = SoftwareUpdater.shared
     @State private var isAuthorizing: Bool = false
     @State private var statusMessage: String?
 
@@ -187,6 +188,81 @@ public struct SettingsView: View {
                         Text(msg)
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
+                    }
+                }
+                .padding(18)
+                .background(.ultraThinMaterial)
+                .cornerRadius(14)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                )
+
+                // Software Updates Card
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("SOFTWARE UPDATES")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.secondary)
+
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Automatic Updates")
+                                .font(.system(size: 13, weight: .medium))
+                            Text("Automatically check for and notify of new updates")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { updater.automaticallyChecksForUpdates },
+                            set: { updater.automaticallyChecksForUpdates = $0 }
+                        ))
+                        .labelsHidden()
+                    }
+
+                    Divider()
+
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Automatic Downloads")
+                                .font(.system(size: 13, weight: .medium))
+                            Text("Download new releases automatically in the background")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { updater.automaticallyDownloadsUpdates },
+                            set: { updater.automaticallyDownloadsUpdates = $0 }
+                        ))
+                        .disabled(!updater.automaticallyChecksForUpdates)
+                        .labelsHidden()
+                    }
+
+                    Divider()
+
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Version")
+                                .font(.system(size: 13, weight: .medium))
+                            let ver = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+                            let bld = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+                            Text("leFan v\(ver) (Build \(bld))")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Button(action: {
+                            updater.checkForUpdates()
+                        }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                Text("Check for Updates…")
+                            }
+                            .font(.system(size: 11, weight: .medium))
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.cyan)
                     }
                 }
                 .padding(18)

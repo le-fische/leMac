@@ -4,6 +4,7 @@ set -euo pipefail
 # ==============================================================================
 # leFan Release Packaging Script
 # Compiles leFan and packages it into standalone drag-and-drop .dmg and .zip bundles.
+# Signs release archive with Curve25519 and updates Sparkle appcast.xml feed.
 # ==============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -75,13 +76,31 @@ else
     CONTENTS="$TARGET_APP/Contents"
     MACOS="$CONTENTS/MacOS"
     RESOURCES="$CONTENTS/Resources"
+    FRAMEWORKS="$CONTENTS/Frameworks"
 
     mkdir -p "$MACOS"
     mkdir -p "$RESOURCES"
+    mkdir -p "$FRAMEWORKS"
 
     cp -f "$SCRIPT_DIR/.build/release/leFan" "$MACOS/leFan"
     cp -f "$SCRIPT_DIR/.build/release/lefan-helper" "$MACOS/lefan-helper"
     chmod +x "$MACOS/leFan" "$MACOS/lefan-helper"
+
+    # Copy Sparkle framework
+    SPARKLE_SRC=""
+    if [ -d "$SCRIPT_DIR/.build/release/Sparkle.framework" ]; then
+        SPARKLE_SRC="$SCRIPT_DIR/.build/release/Sparkle.framework"
+    elif [ -d "$SCRIPT_DIR/.build/arm64-apple-macosx/release/Sparkle.framework" ]; then
+        SPARKLE_SRC="$SCRIPT_DIR/.build/arm64-apple-macosx/release/Sparkle.framework"
+    elif [ -d "$SCRIPT_DIR/.build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework" ]; then
+        SPARKLE_SRC="$SCRIPT_DIR/.build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework"
+    fi
+
+    if [ -n "$SPARKLE_SRC" ]; then
+        echo "--> Copying Sparkle framework from $SPARKLE_SRC..."
+        cp -R "$SPARKLE_SRC" "$FRAMEWORKS/"
+        install_name_tool -add_rpath "@executable_path/../Frameworks" "$MACOS/leFan" 2>/dev/null || true
+    fi
 
     cp -f "$SCRIPT_DIR/Sources/Helper/install_helper.sh" "$RESOURCES/install_helper.sh"
     cp -f "$SCRIPT_DIR/Sources/Helper/com.le.lefan.helper.plist" "$RESOURCES/com.le.lefan.helper.plist"
@@ -124,6 +143,18 @@ else
     <true/>
     <key>NSSupportsAutomaticGraphicsSwitching</key>
     <true/>
+    <key>SUFeedURL</key>
+    <string>https://raw.githubusercontent.com/le-fische/leMac/main/leFan/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>a24A4iOxvUr/i64Tjz3q8qraXdawXglnVQwKOV1DZMw=</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
+    <key>SUScheduledCheckInterval</key>
+    <integer>86400</integer>
+    <key>SUEnableDownloaderService</key>
+    <true/>
+    <key>SUEnableInstallerLauncherService</key>
+    <true/>
 </dict>
 </plist>
 EOF
@@ -162,6 +193,16 @@ echo "--> Generating checksums..."
     shasum -a 256 "$APP_NAME.dmg" "$APP_NAME.zip" > checksums.txt
     cp checksums.txt "${APP_NAME}-checksums.txt"
 )
+
+# 4. Sign update with Sparkle and update appcast.xml
+SIGN_SCRIPT="$SCRIPT_DIR/Configuration/sparkle/sign_update.swift"
+APPCAST_FILE="$SCRIPT_DIR/appcast.xml"
+if [ -f "$SIGN_SCRIPT" ]; then
+    VERSION="$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$TARGET_APP/Contents/Info.plist" 2>/dev/null || echo "1.0.0")"
+    BUILD_NUM="$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$TARGET_APP/Contents/Info.plist" 2>/dev/null || echo "1")"
+    echo "--> Signing Sparkle update archive and updating appcast (v$VERSION build $BUILD_NUM)..."
+    "$SIGN_SCRIPT" --archive "$ZIP_OUTPUT" --version "$VERSION" --build "$BUILD_NUM" --appcast "$APPCAST_FILE"
+fi
 
 echo ""
 echo "=== Packaging Complete! ==="

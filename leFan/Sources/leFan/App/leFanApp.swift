@@ -18,6 +18,10 @@ struct leFanApp: App {
                 Button("About leFan") {
                     appDelegate.openMainWindow()
                 }
+                Divider()
+                Button("Check for Updates…") {
+                    SoftwareUpdater.shared.checkForUpdates()
+                }
             }
         }
     }

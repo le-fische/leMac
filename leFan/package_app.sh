@@ -12,17 +12,34 @@ APP_DIR="$DIR/$APP_NAME"
 CONTENTS="$APP_DIR/Contents"
 MACOS="$CONTENTS/MacOS"
 RESOURCES="$CONTENTS/Resources"
+FRAMEWORKS="$CONTENTS/Frameworks"
 
 echo "==> Creating bundle structure..."
 rm -rf "$APP_DIR"
 mkdir -p "$MACOS"
 mkdir -p "$RESOURCES"
+mkdir -p "$FRAMEWORKS"
 
 echo "==> Copying executables..."
 cp -f "$DIR/.build/release/leFan" "$MACOS/leFan"
 cp -f "$DIR/.build/release/lefan-helper" "$MACOS/lefan-helper"
 chmod +x "$MACOS/leFan"
 chmod +x "$MACOS/lefan-helper"
+
+echo "==> Copying frameworks..."
+SPARKLE_SRC=""
+if [ -d "$DIR/.build/release/Sparkle.framework" ]; then
+    SPARKLE_SRC="$DIR/.build/release/Sparkle.framework"
+elif [ -d "$DIR/.build/arm64-apple-macosx/release/Sparkle.framework" ]; then
+    SPARKLE_SRC="$DIR/.build/arm64-apple-macosx/release/Sparkle.framework"
+elif [ -d "$DIR/.build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework" ]; then
+    SPARKLE_SRC="$DIR/.build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework"
+fi
+
+if [ -n "$SPARKLE_SRC" ]; then
+    cp -R "$SPARKLE_SRC" "$FRAMEWORKS/"
+    install_name_tool -add_rpath "@executable_path/../Frameworks" "$MACOS/leFan" 2>/dev/null || true
+fi
 
 echo "==> Copying helper assets and icon..."
 cp -f "$DIR/Sources/Helper/install_helper.sh" "$RESOURCES/install_helper.sh"
@@ -66,6 +83,18 @@ cat << 'EOF' > "$CONTENTS/Info.plist"
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSSupportsAutomaticGraphicsSwitching</key>
+    <true/>
+    <key>SUFeedURL</key>
+    <string>https://raw.githubusercontent.com/le-fische/leMac/main/leFan/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>a24A4iOxvUr/i64Tjz3q8qraXdawXglnVQwKOV1DZMw=</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
+    <key>SUScheduledCheckInterval</key>
+    <integer>86400</integer>
+    <key>SUEnableDownloaderService</key>
+    <true/>
+    <key>SUEnableInstallerLauncherService</key>
     <true/>
 </dict>
 </plist>

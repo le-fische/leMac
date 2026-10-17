@@ -1,5 +1,6 @@
 import AppKit
 import ServiceManagement
+import Sparkle
 
 public protocol MenuControllerDelegate: AnyObject {
     func didChangeStyle(_ style: GraphStyle)
@@ -13,6 +14,7 @@ public class MenuController: NSObject, NSMenuDelegate {
     public weak var delegate: MenuControllerDelegate?
     public let menu = NSMenu()
     public private(set) var isMenuOpen: Bool = false
+    private let updaterController: SPUStandardUpdaterController?
     
     // Dynamic Menu Items
     private var headerItem: NSMenuItem!
@@ -45,7 +47,8 @@ public class MenuController: NSObject, NSMenuDelegate {
     private var tempUnitMenuItems: [TemperatureUnit: NSMenuItem] = [:]
     private var launchAtLoginItem: NSMenuItem!
     
-    public override init() {
+    public init(updaterController: SPUStandardUpdaterController? = nil) {
+        self.updaterController = updaterController
         super.init()
         buildMenu()
         menu.delegate = self
@@ -151,7 +154,11 @@ public class MenuController: NSObject, NSMenuDelegate {
         updateLaunchAtLoginState()
         menu.addItem(launchAtLoginItem)
         
-        // 10. About & Quit
+        // 10. Updates, About & Quit
+        let checkForUpdatesItem = NSMenuItem(title: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "")
+        checkForUpdatesItem.target = self
+        menu.addItem(checkForUpdatesItem)
+        
         let aboutItem = NSMenuItem(title: "About leCG…", action: #selector(openAbout), keyEquivalent: "")
         aboutItem.target = self
         menu.addItem(aboutItem)
@@ -402,6 +409,16 @@ public class MenuController: NSObject, NSMenuDelegate {
             launchAtLoginItem.state = (SMAppService.mainApp.status == .enabled) ? .on : .off
         } else {
             launchAtLoginItem.isHidden = true
+        }
+    }
+    
+    @objc private func checkForUpdates() {
+        NSApplication.shared.activate(ignoringOtherApps: true)
+        if let controller = updaterController {
+            controller.checkForUpdates(nil)
+        } else {
+            let controller = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+            controller.checkForUpdates(nil)
         }
     }
     

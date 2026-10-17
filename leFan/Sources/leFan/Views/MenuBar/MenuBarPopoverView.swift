@@ -144,6 +144,16 @@ public struct MenuBarPopoverView: View {
 
                 Spacer()
 
+                Button(action: {
+                    SoftwareUpdater.shared.checkForUpdates()
+                }) {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.system(size: 11))
+                }
+                .buttonStyle(.plain)
+                .help("Check for Updates…")
+                .padding(.horizontal, 4)
+
                 Button(action: onQuit) {
                     Text("Quit")
                         .font(.system(size: 11))
