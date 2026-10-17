@@ -1,4 +1,4 @@
-name: Release leNotch
+name: Release leMac Apps
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Tag name for the release (e.g. v2.7.3)'
+        description: 'Tag name for the release (e.g. v2.7.4)'
         required: false
         default: ''
 
@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   build-and-release:
-    name: Build & Package leNotch
+    name: Build & Package leMac Apps
     runs-on: macos-14
 
     steps:
@@ -28,18 +28,36 @@ jobs:
       - name: Show Xcode & System Info
         run: |
           xcodebuild -version
+          swift --version
           sw_vers
 
-      - name: Build & Package DMG and ZIP
+      - name: Build & Package leNotch DMG and ZIP
         run: |
           chmod +x ./leNotch/package_release.sh
           ./leNotch/package_release.sh
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+
+      - name: Build & Package leFan DMG and ZIP
+        run: |
+          chmod +x ./leFan/package_release.sh
+          ./leFan/package_release.sh
+
+      - name: Commit & Push Updated Appcast
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git status --porcelain | grep -q "leNotch/appcast.xml"; then
+            git add leNotch/appcast.xml
+            git commit -m "chore(release): update appcast.xml for ${{ github.event.inputs.tag_name || github.ref_name }}"
+            git push origin main
+          fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
-          name: "leNotch ${{ github.event.inputs.tag_name || github.ref_name }}"
+          name: "Release ${{ github.event.inputs.tag_name || github.ref_name }}"
           draft: false
           prerelease: false
           generate_release_notes: true
@@ -47,5 +65,9 @@ jobs:
             leNotch/dist/leNotch.dmg
             leNotch/dist/leNotch.zip
             leNotch/dist/checksums.txt
+            leNotch/appcast.xml
+            leFan/dist/leFan.dmg
+            leFan/dist/leFan.zip
+            leFan/dist/leFan-checksums.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

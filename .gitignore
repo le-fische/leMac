@@ -55,4 +55,5 @@ build/
 dist/
 *.dmg
 *.zip
+*.key
 

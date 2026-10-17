@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>leNotch Updates</title>
+        <link>https://raw.githubusercontent.com/le-fische/leMac/main/leNotch/appcast.xml</link>
+        <description>Automatic software update feed for leNotch.</description>
+        <language>en</language>
+        <item>
+            <title>Version 2.7.3</title>
+            <pubDate>Sat, 17 Oct 2026 13:01:47 +0000</pubDate>
+            <sparkle:version>271</sparkle:version>
+            <sparkle:shortVersionString>2.7.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[
+                <h2>leNotch 2.7.3</h2>
+                <p>Maintenance release with performance and stability improvements.</p>
+            ]]></description>
+            <enclosure
+                url="https://github.com/le-fische/leMac/releases/download/v2.7.3/leNotch.zip"
+                sparkle:edSignature="KrNgra0bMPr97jANEx66bDZKPuAnPhU431ESJ0E3AyNyWaqnOk9hOPa5tvrsDAROhm15HIond5tAPi/YPzXaCA=="
+                length="10484735"
+                type="application/octet-stream" />
+        </item>
+    </channel>
+</rss>
