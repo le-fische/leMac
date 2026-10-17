@@ -43,6 +43,21 @@ jobs:
           chmod +x ./leFan/package_release.sh
           ./leFan/package_release.sh
 
+      - name: Build & Package leWheel DMG and ZIP
+        run: |
+          chmod +x ./leWheel/package_release.sh
+          ./leWheel/package_release.sh
+
+      - name: Build & Package leCG DMG and ZIP
+        run: |
+          chmod +x ./leCG/package_release.sh
+          ./leCG/package_release.sh
+
+      - name: Build & Package leMinibar DMG and ZIP
+        run: |
+          chmod +x ./leMinibar/package_release.sh
+          ./leMinibar/package_release.sh
+
       - name: Commit & Push Updated Appcast
         run: |
           git config user.name "github-actions[bot]"
@@ -69,5 +84,14 @@ jobs:
             leFan/dist/leFan.dmg
             leFan/dist/leFan.zip
             leFan/dist/leFan-checksums.txt
+            leWheel/dist/leWheel.dmg
+            leWheel/dist/leWheel.zip
+            leWheel/dist/leWheel-checksums.txt
+            leCG/dist/leCG.dmg
+            leCG/dist/leCG.zip
+            leCG/dist/leCG-checksums.txt
+            leMinibar/dist/leMinibar.dmg
+            leMinibar/dist/leMinibar.zip
+            leMinibar/dist/leMinibar-checksums.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

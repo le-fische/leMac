@@ -6,13 +6,24 @@ Designed from the ground up to replace outdated, paywalled utility apps, offerin
 
 ---
 
-## 🚀 Installation & Spotlight Search
+## 📥 Direct Download & Installation
 
-**leFan** is installed as a native macOS application in `/Applications/leFan.app`.
+### Quick Install (No Terminal or Xcode Needed!)
 
-- **Spotlight Search**: Press `⌘ + Space`, type `leFan`, and press `Enter` to launch it immediately.
-- **Launchpad**: Available directly in Launchpad with a custom modern squircle app icon.
-- **Menu Bar**: Runs seamlessly in the macOS menu bar showing live Fan RPM and CPU/Peak temperature.
+Download ready-to-run macOS packages directly from [GitHub Releases](https://github.com/le-fische/leMac/releases):
+
+1. **Download the latest release**:
+   - 💿 [**Download leFan.dmg**](https://github.com/le-fische/leMac/releases/latest/download/leFan.dmg) *(Drag & Drop Installer)*
+   - 📦 [**Download leFan.zip**](https://github.com/le-fische/leMac/releases/latest/download/leFan.zip) *(Portable Archive)*
+2. **Install**:
+   - Open `leFan.dmg` and drag **leFan** into your **Applications** folder.
+3. **Launch**:
+   - Open **leFan** from Applications, Launchpad, or Spotlight (`⌘ + Space`).
+
+> **Tip for First Launch**: Because leFan is an open-source utility signed ad-hoc, if macOS Gatekeeper displays an "unidentified developer" prompt on first launch, simply right-click (or Control-click) `leFan.app` in `/Applications` and select **Open**, then click **Open**. Alternatively, run:
+> ```bash
+> xattr -cr /Applications/leFan.app
+> ```
 
 ---
 
@@ -28,6 +39,7 @@ Designed from the ground up to replace outdated, paywalled utility apps, offerin
 | **Animated Tachometer Gauges** | ❌ Flat text | **✅ Dynamic Glowing Circular Dials** |
 | **Historical Telemetry Charts** | ❌ None | **✅ 60-Second Real-Time Sparklines** |
 | **Synchronized Dual-Fan Control** | ❌ Basic | **✅ Synchronize or Independent** |
+| **Idle CPU Usage** | ❌ 5%–15% | **✅ < 0.2% Idle in Menu Bar** |
 | **Price** | \$14.95 – \$29.95 | **🎉 100% Free** |
 
 ---
@@ -91,9 +103,20 @@ Designed from the ground up to replace outdated, paywalled utility apps, offerin
 
 ---
 
-## 🛠️ Rebuilding from Source
+## 🛠️ Building & Packaging from Source
+
+### Rebuild and Install to `/Applications/leFan.app`:
 ```bash
 cd /Users/le/Documents/Projects/leMac/leFan
 ./package_app.sh
 ```
-The script compiles the release binaries, packages the `.app` bundle with the icon, installs it to `/Applications/leFan.app`, and refreshes macOS Spotlight.
+
+### Build Standalone Release Packages (`.dmg` & `.zip`):
+```bash
+cd /Users/le/Documents/Projects/leMac/leFan
+./package_release.sh
+```
+This generates:
+- `dist/leFan.dmg`: Standalone drag-and-drop disk image installer.
+- `dist/leFan.zip`: Portable compressed application archive.
+- `dist/checksums.txt`: SHA256 checksums for release verification.
