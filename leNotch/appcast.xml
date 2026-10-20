@@ -6,19 +6,19 @@
         <description>Automatic software update feed for leNotch.</description>
         <language>en</language>
         <item>
-            <title>Version 2.7.3</title>
-            <pubDate>Sat, 17 Oct 2026 13:01:47 +0000</pubDate>
-            <sparkle:version>271</sparkle:version>
-            <sparkle:shortVersionString>2.7.3</sparkle:shortVersionString>
+            <title>Version 2.7.4</title>
+            <pubDate>Tue, 20 Oct 2026 14:02:19 +0000</pubDate>
+            <sparkle:version>272</sparkle:version>
+            <sparkle:shortVersionString>2.7.4</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <description><![CDATA[
-                <h2>leNotch 2.7.3</h2>
+                <h2>leNotch 2.7.4</h2>
                 <p>Maintenance release with performance and stability improvements.</p>
             ]]></description>
             <enclosure
-                url="https://github.com/le-fische/leMac/releases/download/v2.7.3/leNotch.zip"
-                sparkle:edSignature="KrNgra0bMPr97jANEx66bDZKPuAnPhU431ESJ0E3AyNyWaqnOk9hOPa5tvrsDAROhm15HIond5tAPi/YPzXaCA=="
-                length="10484735"
+                url="https://github.com/le-fische/leMac/releases/download/v2.7.4/leNotch.zip"
+                sparkle:edSignature="CzMipfwj/ongoqSHV1iYVAZWGML+5JCbCw2nSxmymZjiIKRUyI/1WLWPwC1TPEmvawfsDX5gdARF174wUNHXBw=="
+                length="10487322"
                 type="application/octet-stream" />
         </item>
     </channel>

@@ -230,16 +230,26 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         let payload = update.payload
         let diff = update.diff ?? false
 
-        var newPlaybackState = PlaybackState(bundleIdentifier: playbackState.bundleIdentifier)
+        let incomingBundleID = (
+            payload.parentApplicationBundleIdentifier ??
+            payload.bundleIdentifier ??
+            (diff ? self.playbackState.bundleIdentifier : "")
+        )
+
+        // If the bundleIdentifier changed (e.g., from Chrome to Spotify), this is NOT a diff against the previous app!
+        let isAppSwitch = !incomingBundleID.isEmpty && (incomingBundleID != self.playbackState.bundleIdentifier)
+        let effectiveDiff = diff && !isAppSwitch
+
+        var newPlaybackState = PlaybackState(bundleIdentifier: incomingBundleID)
         
-        newPlaybackState.title = payload.title ?? (diff ? self.playbackState.title : "")
-        newPlaybackState.artist = payload.artist ?? (diff ? self.playbackState.artist : "")
-        newPlaybackState.album = payload.album ?? (diff ? self.playbackState.album : "")
-        newPlaybackState.duration = payload.duration ?? (diff ? self.playbackState.duration : 0)
+        newPlaybackState.title = payload.title ?? (effectiveDiff ? self.playbackState.title : "")
+        newPlaybackState.artist = payload.artist ?? (effectiveDiff ? self.playbackState.artist : "")
+        newPlaybackState.album = payload.album ?? (effectiveDiff ? self.playbackState.album : "")
+        newPlaybackState.duration = payload.duration ?? (effectiveDiff ? self.playbackState.duration : 0)
         
         if let elapsedTime = payload.elapsedTime {
             newPlaybackState.currentTime = elapsedTime
-        } else if diff {
+        } else if effectiveDiff {
             if payload.playing == false {
                 let timeSinceLastUpdate = Date().timeIntervalSince(self.playbackState.lastUpdated)
                 newPlaybackState.currentTime = self.playbackState.currentTime + (self.playbackState.playbackRate * timeSinceLastUpdate)
@@ -253,14 +263,14 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
         
         if let shuffleMode = payload.shuffleMode {
             newPlaybackState.isShuffled = shuffleMode != 1
-        } else if !diff {
+        } else if !effectiveDiff {
             newPlaybackState.isShuffled = false
         } else {
             newPlaybackState.isShuffled = self.playbackState.isShuffled
         }
         if let repeatModeValue = payload.repeatMode {
             newPlaybackState.repeatMode = RepeatMode(rawValue: repeatModeValue) ?? .off
-        } else if !diff {
+        } else if !effectiveDiff {
             newPlaybackState.repeatMode = .off
         } else {
             newPlaybackState.repeatMode = self.playbackState.repeatMode
@@ -270,28 +280,26 @@ final class NowPlayingController: ObservableObject, MediaControllerProtocol {
             newPlaybackState.artwork = Data(
                 base64Encoded: artworkDataString.trimmingCharacters(in: .whitespacesAndNewlines)
             )
-        } else if !diff {
+        } else if !effectiveDiff {
             newPlaybackState.artwork = nil
+        } else {
+            newPlaybackState.artwork = self.playbackState.artwork
         }
 
         if let dateString = payload.timestamp,
            let date = ISO8601DateFormatter().date(from: dateString) {
             newPlaybackState.lastUpdated = date
-        } else if !diff {
+        } else if !effectiveDiff {
             newPlaybackState.lastUpdated = Date()
         } else {
             newPlaybackState.lastUpdated = self.playbackState.lastUpdated
         }
 
-        newPlaybackState.playbackRate = payload.playbackRate ?? (diff ? self.playbackState.playbackRate : 1.0)
-        newPlaybackState.isPlaying = payload.playing ?? (diff ? self.playbackState.isPlaying : false)
-        newPlaybackState.bundleIdentifier = (
-            payload.parentApplicationBundleIdentifier ??
-            payload.bundleIdentifier ??
-            (diff ? self.playbackState.bundleIdentifier : "")
-        )
+        newPlaybackState.playbackRate = payload.playbackRate ?? (effectiveDiff ? self.playbackState.playbackRate : 1.0)
+        newPlaybackState.isPlaying = payload.playing ?? (effectiveDiff ? self.playbackState.isPlaying : false)
+        newPlaybackState.bundleIdentifier = incomingBundleID
         
-        newPlaybackState.volume = payload.volume ?? (diff ? self.playbackState.volume : 0.5)
+        newPlaybackState.volume = payload.volume ?? (effectiveDiff ? self.playbackState.volume : 0.5)
         
         self.playbackState = newPlaybackState
         

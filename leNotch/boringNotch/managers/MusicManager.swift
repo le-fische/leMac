@@ -183,16 +183,45 @@ class MusicManager: ObservableObject {
     // MARK: - Update Methods
     @MainActor
     private func updateFromPlaybackState(_ state: PlaybackState) {
+        let bundleChanged = state.bundleIdentifier != self.lastArtworkBundleIdentifier
+        let isSwitchingToPausedApp = bundleChanged && !state.isPlaying
+
         // Check for playback state changes (playing/paused)
         if state.isPlaying != self.isPlaying {
             NSLog("Playback state changed: \(state.isPlaying ? "Playing" : "Paused")")
             withAnimation(.smooth) {
                 self.isPlaying = state.isPlaying
-                self.updateIdleState(state: state.isPlaying)
+                if isSwitchingToPausedApp {
+                    // When switching to a different app that is paused, go directly to idle without waitInterval
+                    self.debounceIdleTask?.cancel()
+                    self.debounceIdleTask = nil
+                    self.isPlayerIdle = true
+                } else {
+                    self.updateIdleState(state: state.isPlaying)
+                }
             }
 
             if state.isPlaying && !state.title.isEmpty && !state.artist.isEmpty {
                 self.updateSneakPeek()
+            } else if !state.isPlaying {
+                // Playback paused or stopped: immediately dismiss any active music sneak peek or expanding view
+                if self.coordinator.expandingView.type == .music && self.coordinator.expandingView.show {
+                    self.coordinator.toggleExpandingView(status: false, type: .music)
+                }
+                if self.coordinator.sneakPeek.type == .music && self.coordinator.sneakPeek.show {
+                    self.coordinator.toggleSneakPeek(status: false, type: .music)
+                }
+            }
+        } else if isSwitchingToPausedApp {
+            // Already !isPlaying, but bundle changed to another paused app: ensure player is idle immediately
+            self.debounceIdleTask?.cancel()
+            self.debounceIdleTask = nil
+            self.isPlayerIdle = true
+            if self.coordinator.expandingView.type == .music && self.coordinator.expandingView.show {
+                self.coordinator.toggleExpandingView(status: false, type: .music)
+            }
+            if self.coordinator.sneakPeek.type == .music && self.coordinator.sneakPeek.show {
+                self.coordinator.toggleSneakPeek(status: false, type: .music)
             }
         }
 
@@ -200,7 +229,6 @@ class MusicManager: ObservableObject {
         let titleChanged = state.title != self.lastArtworkTitle
         let artistChanged = state.artist != self.lastArtworkArtist
         let albumChanged = state.album != self.lastArtworkAlbum
-        let bundleChanged = state.bundleIdentifier != self.lastArtworkBundleIdentifier
 
         // Check for artwork changes
         let artworkChanged = state.artwork != nil && state.artwork != self.artworkData
@@ -208,7 +236,9 @@ class MusicManager: ObservableObject {
 
         // Handle artwork and visual transitions for changed content
         if hasContentChange {
-            self.triggerFlipAnimation()
+            if state.isPlaying {
+                self.triggerFlipAnimation()
+            }
 
             if artworkChanged, let artwork = state.artwork {
                 self.updateArtwork(artwork)
@@ -716,6 +746,15 @@ class MusicManager: ObservableObject {
                 }
             } else {
                 self.setActiveControllerBasedOnPreference()
+            }
+            if !self.isPlaying {
+                self.isPlayerIdle = true
+                if self.coordinator.expandingView.type == .music && self.coordinator.expandingView.show {
+                    self.coordinator.toggleExpandingView(status: false, type: .music)
+                }
+                if self.coordinator.sneakPeek.type == .music && self.coordinator.sneakPeek.show {
+                    self.coordinator.toggleSneakPeek(status: false, type: .music)
+                }
             }
         }
     }
